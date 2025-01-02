@@ -14,6 +14,7 @@ O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a 
 #include "raylib.h"
 #include "canvas.h"
 #include "structs.h"
+#include "filemanager.h"
 
 // Número máximo de conteúdos
 #define MAX_BOMBAS 3
@@ -39,13 +40,10 @@ O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a 
 void criarInimigo(POSICAO posInimigos[], int lin, int col, int num);
 void criarChave(POSICAO posChaves[], int lin, int col, int num);
 void menu(bool *rodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); // menu de pausa
-void lerMapaDoArquivo(char *nomeArquivo, char mapa[LINHAS][COLUNAS]); //transforma o mapa.txt em matriz
-void colocarBomba(JOGADOR *jogador, POSICAO *posJogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[]);//coloca as bombas no mapa
+void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[]);//coloca as bombas no mapa
 void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador); //cuida do timer de 3 segundos das bombas
 void explodirBomba(char mapa[LINHAS][COLUNAS], int lin, int col, bool ativa); //explode as bombas
 void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); //cria um novo jogo
-void carregarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]);
-void salvarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); //salva o jogo atual
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 
 /************* Main **************/
@@ -111,7 +109,7 @@ int main()
         /**** MOVER O PERSONAGEM + MENU ****/
         //----------------------------------------------------------------------------------
         controlarMovimentacao(mapa, &jogador);
-        if (IsKeyPressed(KEY_SPACE)) colocarBomba(&jogador, &posJogador, mapa, bombas); //colocar uma bomba
+        if (IsKeyPressed(KEY_SPACE)) colocarBomba(&jogador, mapa, bombas);
         if (IsKeyPressed(KEY_TAB)) menu(&rodando, mapa, &posJogador, posInimigos, posChaves, &jogador, bombas, contadores); //abrir menu
         if (IsKeyPressed(KEY_ESCAPE)) rodando = False;//sair do jogo (apenas para testar)
         //----------------------------------------------------------------------------------
@@ -126,52 +124,11 @@ int main()
 
 /*********** Funções ************/
 
-/* Lê o arquivo *de texto* do mapa e transforma em um mapa matriz para a utilização no jogo */
-void lerMapaDoArquivo(char *nomeArquivo, char mapa[LINHAS][COLUNAS])
-{
-    int i, j;
-    FILE *arq = fopen(nomeArquivo, "r");
-
-    if (arq == NULL)
-    {
-        printf("\nErro ao abrir o arquivo.\n");
-        return;
-    }
-    else
-    {
-        for (i = 0; i < LINHAS; i++)
-        {
-            for (j = 0; j < COLUNAS; j++)
-            {
-                mapa[i][j] = getc(arq); // Busca cada caractere do arquivo
-            }
-
-            getc(arq); // Pega o caractere \n após a leitura de cada linha
-        }
-
-        fclose(arq);
-    }
-}
-
-/* Inicia um inimigo na posição */
-void criarInimigo(POSICAO posInimigos[], int lin, int col, int indexInimigo)
-{
-    posInimigos[indexInimigo].lin = lin;
-    posInimigos[indexInimigo].col = col;
-}
-
-/* Inicia a chave na posicao */
-void criarChave(POSICAO posChaves[], int lin, int col, int indexChave)
-{
-    posChaves[indexChave].lin = lin;
-    posChaves[indexChave].col = col;
-}
-
 /* Posiciona a bomba no mapa */
-void colocarBomba(JOGADOR *jogador, POSICAO *posJogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[])
+void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[])
 {
-    int lin = posJogador->lin;
-    int col = posJogador->col;
+    int lin = jogador->posicao.lin;
+    int col = jogador->posicao.col;
 
     // Se não tiver bombas, não há para colocar
     if (jogador->nBombas <= 0) return;
@@ -186,8 +143,8 @@ void colocarBomba(JOGADOR *jogador, POSICAO *posJogador, char mapa[LINHAS][COLUN
         // Para cada bomba inativa
         if (mapa[lin][col] == ' ')  // Verifica se o espaço do jogador está vazio
         {
-            lin = posJogador->lin;
-            col = posJogador->col;
+            lin = jogador->posicao.lin;
+            col = jogador->posicao.col;
 
             bombas[i].ativa = True; // Ativa a bomba
             bombas[i].tempoInicio = 0; // Armazena o tempo atual
@@ -420,83 +377,6 @@ void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimig
     //criarMapa(mapa, posJogador, posInimigos, posChaves, contadores);
 
     printf("\n\n----- NOVO JOGO INICIADO! -----\n");
-}
-
-/* Carrega o jogo salvo de um arquivo binário */
-void carregarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[])
-{
-    printf("\nCarregando o jogo...");
-
-    // Lê o arquivo do jogo salvo
-    FILE *arq;
-    arq = fopen("JogoSalvo.bomb","rb");
-
-    if (arq == NULL)
-    {
-        printf("\nErro ao carregar o jogo salvo.");
-    }
-    else
-    {
-        // Carrega as informações...
-        fread(jogador, sizeof(int), 4, arq); // ... do jogador
-        fread(bombas, sizeof(BOMBA), MAX_BOMBAS, arq); // ... das bombas
-        fread(mapa, sizeof(char), TAMANHO_MAPA, arq); // ... do mapa
-
-        fclose(arq);
-
-        printf("  Jogo carregado com sucesso!");
-    }
-
-    // Cria o mapa de novo
-    //criarMapa(mapa, posJogador, posInimigos, posChaves, contadores);
-}
-
-/* Salva o jogo em um arquivo binario */
-void salvarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[])
-{
-    int i;
-    int lin, col;
-
-    printf("\nSalvando o jogo...");
-
-    // Atualiza a posição dos inimigos no mapa
-    for (i = 0; i < contadores[4]; i++)
-    {
-        lin = posInimigos[i].lin / TAM_BLOCO;
-        col = posInimigos[i].col / TAM_BLOCO;
-        mapa[lin][col] = 'E';
-    }
-
-    // Atualiza a posiçao do jogador no mapa
-    lin = posJogador->lin / TAM_BLOCO;
-    col = posJogador->col / TAM_BLOCO;
-    mapa[lin][col] = 'J';
-
-    // Cria um arquivo para salvar o jogo
-    FILE *save;
-    save = fopen("JogoSalvo.bomb","wb");
-
-    if (save == NULL)
-    {
-        printf("\nErro ao salvar o jogo.");
-    }
-    else
-    {
-        // Salva as informações...
-        fwrite(jogador, sizeof(int), 4, save); // ... do jogador
-        fwrite(bombas, sizeof(BOMBA), MAX_BOMBAS, save); // ... das bombas
-
-        // ... do mapa
-        for (i = 0; i < LINHAS; i++)
-        {
-            fwrite(mapa, sizeof(char), 60, save);
-            fwrite("\n", sizeof(char), 1, save);
-        }
-
-        fclose(save);
-
-        printf("  Sucesso!");
-    }
 }
 
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)

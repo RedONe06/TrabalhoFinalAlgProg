@@ -33,9 +33,11 @@ void desenharMapa(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
             case 'K': // Baú com chave
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BLUE);
                 break;
-            case 'E': // Chave
+            case 'E': // Inimigo
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, RED);
                 break;
+            case 'X':
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BLACK);
             default:
                 continue;
             }
