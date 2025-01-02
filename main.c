@@ -2,6 +2,8 @@
 habilidade de trabalho em equipe, consistindo na implementação de um jogo na linguagem de programação C.
 O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a biblioteca gráfica RayLib*/
 
+//Gabriel Iza Fauth
+
 /*********** Includes e Defines ***********/
 
 #include <stdio.h>
