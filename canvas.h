@@ -7,9 +7,6 @@
 #define COLUNAS 60
 
 // Declaração de funções
-void desenharParedes(char mapa[LINHAS][COLUNAS]);
-void desenharInimigos(char mapa[LINHAS][COLUNAS], POSICAO posicoes[]);
-void desenharBombas(char mapa[LINHAS][COLUNAS], BOMBA bombas[]);
-void desenharChaves(char mapa[LINHAS][COLUNAS], POSICAO posicoes[]);
+void desenharMapa(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 
 #endif

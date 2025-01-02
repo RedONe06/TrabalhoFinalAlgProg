@@ -26,6 +26,7 @@ typedef struct
     int nBombas; // Número de bombas restantes
     int pontuacao; // Pontuação atual do jogador
     int nChaves; // Número de chaves encontradas
+    POSICAO posicao; // Posicao no mapa
 } JOGADOR;
 
 // Informações de uma bomba

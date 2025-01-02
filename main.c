@@ -40,19 +40,18 @@ void criarInimigo(POSICAO posInimigos[], int lin, int col, int num);
 void criarChave(POSICAO posChaves[], int lin, int col, int num);
 void menu(bool *rodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); // menu de pausa
 void lerMapaDoArquivo(char *nomeArquivo, char mapa[LINHAS][COLUNAS]); //transforma o mapa.txt em matriz
-void criarMapa(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], int contadores[]); // Cria o mapa
 void colocarBomba(JOGADOR *jogador, POSICAO *posJogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[]);//coloca as bombas no mapa
 void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador); //cuida do timer de 3 segundos das bombas
 void explodirBomba(char mapa[LINHAS][COLUNAS], int lin, int col, bool ativa); //explode as bombas
 void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); //cria um novo jogo
 void carregarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]);
 void salvarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); //salva o jogo atual
+void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 
 /************* Main **************/
 int main()
 {
     bool rodando = true; // Enquanto rodando == True o jogo irá rodar
-    int j, k;
 
     char mapa[LINHAS][COLUNAS];
 
@@ -69,7 +68,7 @@ int main()
     // Printa a matriz para verificar se o mapa foi recebido corretamente
     for (int i = 0; i < LINHAS; i++)
     {
-        for (j = 0; j < COLUNAS; j++)
+        for (int j = 0; j < COLUNAS; j++)
         {
             printf("%c", mapa[i][j]);
         }
@@ -97,35 +96,25 @@ int main()
     jogador.nChaves = 0;
 
     // Criar o mapa adicionando as posições dos objetos às respectivas structs
-    criarMapa(mapa, &posJogador, posInimigos, posChaves, contadores);
+    //criarMapa(mapa, &posJogador, posInimigos, posChaves, contadores);
 
     // While principal do jogo
     while (rodando)
     {
-        /**** MOVER O PERSONAGEM + MENU ****/
-        //----------------------------------------------------------------------------------
-        if (IsKeyDown(KEY_RIGHT)) posJogador.col += 2; // Mover direita
-        if (IsKeyDown(KEY_LEFT)) posJogador.col -= 2; // Mover esquerda
-        if (IsKeyDown(KEY_UP)) posJogador.lin -= 2; // Mover cima
-        if (IsKeyDown(KEY_DOWN)) posJogador.lin += 2; // Mover baixo
-        if (IsKeyPressed(KEY_SPACE)) colocarBomba(&jogador, &posJogador, mapa, bombas); //colocar uma bomba
-        if (IsKeyPressed(KEY_TAB)) menu(&rodando, mapa, &posJogador, posInimigos, posChaves, &jogador, bombas, contadores); //abrir menu
-        if (IsKeyPressed(KEY_ESCAPE)) rodando = False;//sair do jogo (apenas para testar)
-        //----------------------------------------------------------------------------------
-
-        //timerBombas(bombas, mapa, &jogador); //atualiza o timer e, se necessário, explode bombas
-
         /****** Desenhar ******/
         BeginDrawing();
         ClearBackground(RAYWHITE); // Desenha o fundo branco
 
         DrawText(TextFormat("Vidas: %d\tBombas: %d\tPontos: %d\tChaves: %d", jogador.nVidas, jogador.nBombas, jogador.pontuacao, jogador.nChaves), 0, 520, 20, BLACK);//escreve vidas, bombas, pontos e chaves.
-        DrawRectangle(posJogador.col, posJogador.lin, TAM_BLOCO, TAM_BLOCO, GREEN); // Desenha o personagem
+        desenharMapa(mapa, &jogador);
 
-        desenharParedes(mapa);
-        desenharInimigos(mapa, posInimigos);
-        desenharBombas(mapa, bombas);
-        desenharChaves(mapa, posChaves);
+        /**** MOVER O PERSONAGEM + MENU ****/
+        //----------------------------------------------------------------------------------
+        controlarMovimentacao(mapa, &jogador);
+        if (IsKeyPressed(KEY_SPACE)) colocarBomba(&jogador, &posJogador, mapa, bombas); //colocar uma bomba
+        if (IsKeyPressed(KEY_TAB)) menu(&rodando, mapa, &posJogador, posInimigos, posChaves, &jogador, bombas, contadores); //abrir menu
+        if (IsKeyPressed(KEY_ESCAPE)) rodando = False;//sair do jogo (apenas para testar)
+        //----------------------------------------------------------------------------------
 
         EndDrawing();
 
@@ -164,70 +153,25 @@ void lerMapaDoArquivo(char *nomeArquivo, char mapa[LINHAS][COLUNAS])
     }
 }
 
-/* Usando o mapa dado, coloca a posição dos objetos nas structs correspondentes */
-void criarMapa(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], int contadores[])
-{
-    int i, j;
-
-    for (i = 0; i < LINHAS; i++)
-    {
-        for (j = 0; j < COLUNAS; j++)
-        {
-            switch (mapa[i][j])
-            {
-            case 'J':
-                posJogador->lin = i * TAM_BLOCO;
-                posJogador->col = j * TAM_BLOCO; //posição inicial do jogador
-                mapa[i][j] = ' ';
-                break;
-            case 'K': // Posição chave
-                if (contadores[2] < MAX_CHAVES) // Ter certeza que não tenha mais que 3 chaves
-                {
-                    criarChave(posChaves, i, j, contadores[2]); //
-                    contadores[2]++;
-                }
-                break;
-
-            case 'B': // Posição baús vazios
-                break;
-
-            case 'E': //inimigos
-                if (contadores[4] < MAX_INIMIGOS)   //ter certeza que não tenha mais que 5 inimigos
-                {
-                    criarInimigo(posInimigos, i, j, contadores[4]); //
-                    contadores[4]++;
-                }
-                break;
-
-            case ' ': //espaço vazio
-                break;
-
-            default:
-                continue;
-            }
-        }
-    }
-}
-
 /* Inicia um inimigo na posição */
 void criarInimigo(POSICAO posInimigos[], int lin, int col, int indexInimigo)
 {
-    posInimigos[indexInimigo].lin = lin * TAM_BLOCO;
-    posInimigos[indexInimigo].col = col * TAM_BLOCO;
+    posInimigos[indexInimigo].lin = lin;
+    posInimigos[indexInimigo].col = col;
 }
 
 /* Inicia a chave na posicao */
 void criarChave(POSICAO posChaves[], int lin, int col, int indexChave)
 {
-    posChaves[indexChave].lin = lin * TAM_BLOCO;
-    posChaves[indexChave].col = col * TAM_BLOCO;
+    posChaves[indexChave].lin = lin;
+    posChaves[indexChave].col = col;
 }
 
 /* Posiciona a bomba no mapa */
 void colocarBomba(JOGADOR *jogador, POSICAO *posJogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[])
 {
-    int lin = posJogador->lin / TAM_BLOCO;
-    int col = posJogador->col / TAM_BLOCO;
+    int lin = posJogador->lin;
+    int col = posJogador->col;
 
     // Se não tiver bombas, não há para colocar
     if (jogador->nBombas <= 0) return;
@@ -242,8 +186,8 @@ void colocarBomba(JOGADOR *jogador, POSICAO *posJogador, char mapa[LINHAS][COLUN
         // Para cada bomba inativa
         if (mapa[lin][col] == ' ')  // Verifica se o espaço do jogador está vazio
         {
-            lin = posJogador->lin / TAM_BLOCO;
-            col = posJogador->col / TAM_BLOCO;
+            lin = posJogador->lin;
+            col = posJogador->col;
 
             bombas[i].ativa = True; // Ativa a bomba
             bombas[i].tempoInicio = 0; // Armazena o tempo atual
@@ -473,7 +417,7 @@ void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimig
 
     // Lê novamente o arquivo e recria do 0
     lerMapaDoArquivo("bombermap.txt", mapa);
-    criarMapa(mapa, posJogador, posInimigos, posChaves, contadores);
+    //criarMapa(mapa, posJogador, posInimigos, posChaves, contadores);
 
     printf("\n\n----- NOVO JOGO INICIADO! -----\n");
 }
@@ -504,7 +448,7 @@ void carregarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posIn
     }
 
     // Cria o mapa de novo
-    criarMapa(mapa, posJogador, posInimigos, posChaves, contadores);
+    //criarMapa(mapa, posJogador, posInimigos, posChaves, contadores);
 }
 
 /* Salva o jogo em um arquivo binario */
@@ -555,3 +499,34 @@ void salvarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInim
     }
 }
 
+void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
+{
+    int linha = jogador->posicao.lin;
+    int coluna = jogador->posicao.col;
+
+    char proxDireita = mapa[linha][coluna + 1];
+    char proxEsquerda = mapa[linha][coluna - 1];
+    char proxCima = mapa[linha - 1][coluna];
+    char proxBaixo = mapa[linha + 1][coluna];
+
+    if (IsKeyPressed(KEY_RIGHT) && proxDireita == ' ')
+    {
+        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+        mapa[jogador->posicao.lin][jogador->posicao.col + 1] = 'J';
+    }
+    else if (IsKeyPressed(KEY_LEFT) && proxEsquerda == ' ')
+    {
+        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+        mapa[jogador->posicao.lin][jogador->posicao.col - 1] = 'J';
+    }
+    else if (IsKeyPressed(KEY_UP) && proxCima == ' ')
+    {
+        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+        mapa[jogador->posicao.lin - 1][jogador->posicao.col] = 'J';
+    }
+    else if (IsKeyPressed(KEY_DOWN) && proxBaixo == ' ')
+    {
+        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+        mapa[jogador->posicao.lin + 1][jogador->posicao.col] = 'J';
+    }
+}
