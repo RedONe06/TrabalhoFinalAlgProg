@@ -27,13 +27,13 @@ typedef struct
     int pontuacao; // Pontuação atual do jogador
     int nChaves; // Número de chaves encontradas
     POSICAO posicao; // Posicao no mapa
+    int direcao; // 0 = Para cima, 1 = Para baixo, 2 = Para esquerda, 3 = Para direita
 } JOGADOR;
 
 // Informações de uma bomba
 typedef struct
 {
-    bool ativa; // Status atual da bomba
-    float tempoInicio; // O tempo em que a bomba foi colocada
+    time_t tempoInicio; // O tempo em que a bomba foi colocada
     POSICAO posicao;
 } BOMBA;
 

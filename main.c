@@ -40,11 +40,14 @@ O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a 
 void criarInimigo(POSICAO posInimigos[], int lin, int col, int num);
 void criarChave(POSICAO posChaves[], int lin, int col, int num);
 void menu(bool *rodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); // menu de pausa
-void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[]);//coloca as bombas no mapa
+void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[]);
 void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador); //cuida do timer de 3 segundos das bombas
-void explodirBomba(char mapa[LINHAS][COLUNAS], int lin, int col, bool ativa); //explode as bombas
+void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA bomba, JOGADOR *jogador);
 void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); //cria um novo jogo
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
+POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao);
+void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], BOMBA bombas[], JOGADOR *jogador);
+bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
 
 /************* Main **************/
 int main()
@@ -109,11 +112,12 @@ int main()
         /**** MOVER O PERSONAGEM + MENU ****/
         //----------------------------------------------------------------------------------
         controlarMovimentacao(mapa, &jogador);
-        if (IsKeyPressed(KEY_SPACE)) colocarBomba(&jogador, mapa, bombas);
+        if (IsKeyPressed(KEY_B)) colocarBomba(&jogador, mapa, bombas);
         if (IsKeyPressed(KEY_TAB)) menu(&rodando, mapa, &posJogador, posInimigos, posChaves, &jogador, bombas, contadores); //abrir menu
         if (IsKeyPressed(KEY_ESCAPE)) rodando = False;//sair do jogo (apenas para testar)
         //----------------------------------------------------------------------------------
 
+        verificaTimerDasBombas(mapa, bombas, &jogador);
         EndDrawing();
 
         //----------------------------------------------------------------------------------
@@ -123,187 +127,93 @@ int main()
 }
 
 /*********** Funções ************/
+/* Dado um mapa, uma posicao atual e uma direção para movimento, checa se a posicao seguinte é possível (está vazia) ou não */
+bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao)
+{
+    switch(direcao)
+    {
+    case 0: // Baixo
+        if (mapa[posicaoAtual.lin + 1][posicaoAtual.col] == ' ') return true;
+        break;
+    case 1: // Cima
+        if (mapa[posicaoAtual.lin - 1][posicaoAtual.col] == ' ') return true;
+        break;
+    case 2: // Esquerda
+        if (mapa[posicaoAtual.lin][posicaoAtual.col - 1] == ' ') return true;
+        break;
+    default: // Direita
+        if (mapa[posicaoAtual.lin][posicaoAtual.col + 1] == ' ') return true;
+    }
+
+    return false;
+}
+
+POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao)
+{
+    POSICAO novaPosicao;
+
+    switch(direcao)
+    {
+    case 0: // Baixo
+        novaPosicao.col = posicaoAtual.col;
+        novaPosicao.lin = posicaoAtual.lin++;
+        break;
+    case 1: // Cima
+        novaPosicao.col = posicaoAtual.col;
+        novaPosicao.lin = posicaoAtual.lin--;
+        break;
+    case 2: // Esquerda
+        novaPosicao.col = posicaoAtual.col--;
+        novaPosicao.lin = posicaoAtual.lin;
+        break;
+    default: // Direita
+        novaPosicao.col = posicaoAtual.col++;
+        novaPosicao.lin = posicaoAtual.lin;
+    }
+
+    return novaPosicao;
+}
 
 /* Posiciona a bomba no mapa */
 void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[])
 {
-    int lin = jogador->posicao.lin;
-    int col = jogador->posicao.col;
+    // Se não tiver bombas ou espaço para colocar bomba, não colocar bomba
+    if (jogador->nBombas <= 0 || !direcaoEstaLivre(mapa, jogador->posicao, jogador->direcao)) return;
 
-    // Se não tiver bombas, não há para colocar
-    if (jogador->nBombas <= 0) return;
+    // Define a posição que a bomba vai ficar
+    POSICAO posicaoBomba = acharProximaPosicao(jogador->posicao, jogador->direcao);
+    // Pega o index da bomba baseado na quantidade disponível no arsenal
+    int ultimaBomba = jogador->nBombas - 1;
 
-    for (int i = 0; i < MAX_BOMBAS; i++)
+    bombas[ultimaBomba].tempoInicio = time(NULL); // Armazena o tempo atual
+    bombas[ultimaBomba].posicao.lin = posicaoBomba.lin;
+    bombas[ultimaBomba].posicao.col = posicaoBomba.col;
+
+    mapa[posicaoBomba.lin][posicaoBomba.col] = 'X'; // Coloca um B para marcar a bomba no mapa
+    jogador->nBombas--; // Decrementa o número de bombas do arsenal
+}
+
+void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], BOMBA bombas[], JOGADOR *jogador)
+{
+    int bombasAtivas = MAX_BOMBAS - jogador->nBombas;
+
+    for (int i = 0; i < bombasAtivas; i++)
     {
-        if (bombas[i].ativa)
-        {
-            continue;
-        }
+        double intervaloEmSegundos = difftime(time(NULL), bombas[i].tempoInicio);
+        if (intervaloEmSegundos < 3) continue;
 
-        // Para cada bomba inativa
-        if (mapa[lin][col] == ' ')  // Verifica se o espaço do jogador está vazio
-        {
-            lin = jogador->posicao.lin;
-            col = jogador->posicao.col;
-
-            bombas[i].ativa = True; // Ativa a bomba
-            bombas[i].tempoInicio = 0; // Armazena o tempo atual
-            bombas[i].posicao.lin = lin;
-            bombas[i].posicao.col = col;
-
-            mapa[lin][col] = 'B'; // Coloca um B para marcar a bomba no mapa
-            jogador->nBombas--; // Decrementa o número de bombas
-            break;
-        }
-
+        // Se já se passaram 3 segundos do tempo de início da bomba, explodir ela
+        explodirBomba(mapa, bombas[i], jogador);
     }
 }
 
-/* Verifica se os 3 segundos da bomba se passaram */
-void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
+void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA bomba, JOGADOR *jogador)
 {
-    for (int i = 0; i < MAX_BOMBAS; i++)
-    {
-        if (bombas[i].ativa)
-        {
-            if (4 >= 3.0) /**PRECISO DE ALGO UE CONTE POR 3 SEGUNDOS SEM PARAR COMPLETAMENTE O JOGO**/
-            {
-
-                explodirBomba(mapa, bombas[i].posicao.lin, bombas[i].posicao.col, bombas[i].ativa);//explode a bomba
-
-                jogador->nBombas++; //retorna a bomba pro inventario
-                bombas[i].ativa = false; //bomba fica como inativa
-            }
-        }
-    }
-}
-
-void explodirBomba(char mapa[LINHAS][COLUNAS], int lin, int col, bool ativa)
-{
-    // Se não está ativa, não pode explodir
-    if (!ativa) return;
-
     // Limpa o espaço da bomba e marca como um espaço vazio
-    mapa[lin][col] = ' ';
+    mapa[bomba.posicao.lin][bomba.posicao.col] = ' ';
+    jogador->nBombas++;
 
-    /* Aplica os efeitos da explosões em todas as direções */
-
-    // Cima (exemplo de como todos os fors funcionam)*/
-    for (int i = 1; i <= ALCANCE_BLOCOS_BOMBA; i++)
-    {
-        int novaLinha = lin - i;
-        char blocoAtual = mapa[novaLinha][col];
-
-        // Se encontrar uma parede indestrutivel
-        if (novaLinha >= 0 && blocoAtual == 'W')
-        {
-            break; //Para a explosão (Não destrói nada atrás da parede)
-        }
-        else
-        {
-            // Se !'W' desenha uma explosão
-            DrawRectangle(novaLinha, col, TAM_BLOCO, TAM_BLOCO, ORANGE);// 20x20 Cor: laranja
-        }
-
-        if (novaLinha < 0) continue;
-
-        // Se a parede for destrutível, destroi ela
-        if (blocoAtual == 'D')
-        {
-            mapa[lin - i][col] = ' ';
-            break; //Para a explosão (Não destrói nada atrás da parede)
-        }
-
-        // Se encontrar outra bomba, explode ela imediatamente
-        if (blocoAtual == 'B')
-        {
-            mapa[lin - i][col] = ' '; //marca como espaço vazio
-            explodirBomba(mapa, novaLinha, col, true); //explode aquela bomba
-        }
-    }
-
-    // Baixo
-    for (int i = 1; i <= ALCANCE_BLOCOS_BOMBA; i++)
-    {
-        int novaLinha = lin + i;
-        char blocoAtual = mapa[novaLinha][col];
-
-        if (novaLinha < LINHAS && blocoAtual == 'W')
-        {
-            break;
-        }
-        else
-        {
-            DrawRectangle(novaLinha, col, TAM_BLOCO, TAM_BLOCO, ORANGE);
-        }
-
-        if (novaLinha < LINHAS && blocoAtual == 'D')
-        {
-            mapa[lin + i][col] = ' ';
-            break;
-        }
-        if (novaLinha >= 0 && blocoAtual == 'B')
-        {
-            mapa[lin + i][col] = ' ';
-            explodirBomba(mapa, novaLinha, col, true);
-        }
-    }
-
-    // Esquerda
-    for (int i = 1; i <= ALCANCE_BLOCOS_BOMBA; i++)
-    {
-        int novaColuna = col - i;
-        char blocoAtual = mapa[lin][novaColuna];
-
-        if (novaColuna >= 0 && blocoAtual == 'W')
-        {
-            break;
-        }
-        else
-        {
-            DrawRectangle(novaColuna, lin, TAM_BLOCO, TAM_BLOCO, ORANGE);
-        }
-
-        if (novaColuna < 0) continue;
-
-        if (blocoAtual == 'D')
-        {
-            mapa[lin][col - i] = ' ';
-            break;
-        }
-        if (blocoAtual == 'B')
-        {
-            mapa[lin][col - i] = ' ';
-            explodirBomba(mapa, lin, novaColuna, true);
-        }
-    }
-
-    // Direita
-    for (int i = 1; i <= 3; i++)
-    {
-        int novaColuna = col + i;
-        char blocoAtual = mapa[lin][novaColuna];
-
-        if (novaColuna < COLUNAS && blocoAtual == 'W')
-        {
-            break;
-        }
-        else
-        {
-            DrawRectangle(novaColuna, lin, TAM_BLOCO, TAM_BLOCO, ORANGE);
-        }
-
-        if (novaColuna < COLUNAS && blocoAtual == 'D')
-        {
-            mapa[lin][col + i] = ' ';
-            break;
-        }
-        if (novaColuna >= 0 && blocoAtual == 'B')
-        {
-            mapa[lin][col + i] = ' ';
-            explodirBomba(mapa, lin, novaColuna, true);
-        }
-    }
+    DrawRectangle(bomba.posicao.col * TAM_BLOCO, bomba.posicao.lin * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, WHITE);
 }
 
 /* Roda o menu de pausa */
@@ -369,8 +279,6 @@ void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimig
     jogador->nChaves = 0;
 
     // Reinicia as bombas
-    for (int i = 0; i<MAX_BOMBAS; i++)
-        bombas[i].ativa = false;
 
     // Lê novamente o arquivo e recria do 0
     lerMapaDoArquivo("bombermap.txt", mapa);
@@ -379,34 +287,34 @@ void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimig
     printf("\n\n----- NOVO JOGO INICIADO! -----\n");
 }
 
+
+
+
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
 {
-    int linha = jogador->posicao.lin;
-    int coluna = jogador->posicao.col;
-
-    char proxDireita = mapa[linha][coluna + 1];
-    char proxEsquerda = mapa[linha][coluna - 1];
-    char proxCima = mapa[linha - 1][coluna];
-    char proxBaixo = mapa[linha + 1][coluna];
-
-    if (IsKeyPressed(KEY_RIGHT) && proxDireita == ' ')
+    if (IsKeyPressed(KEY_RIGHT) && direcaoEstaLivre(mapa, jogador->posicao, 3))
     {
         mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
         mapa[jogador->posicao.lin][jogador->posicao.col + 1] = 'J';
+        jogador->direcao = 3; // Direita
     }
-    else if (IsKeyPressed(KEY_LEFT) && proxEsquerda == ' ')
+    else if (IsKeyPressed(KEY_LEFT) && direcaoEstaLivre(mapa, jogador->posicao, 2))
     {
         mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
         mapa[jogador->posicao.lin][jogador->posicao.col - 1] = 'J';
+        jogador->direcao = 2; // Esquerda
     }
-    else if (IsKeyPressed(KEY_UP) && proxCima == ' ')
+    else if (IsKeyPressed(KEY_UP) && direcaoEstaLivre(mapa, jogador->posicao, 1))
     {
         mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
         mapa[jogador->posicao.lin - 1][jogador->posicao.col] = 'J';
+        jogador->direcao = 1; // Cima
     }
-    else if (IsKeyPressed(KEY_DOWN) && proxBaixo == ' ')
+    else if (IsKeyPressed(KEY_DOWN) && direcaoEstaLivre(mapa, jogador->posicao, 0))
     {
         mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
         mapa[jogador->posicao.lin + 1][jogador->posicao.col] = 'J';
+        jogador->direcao = 0; // Baixo
     }
 }
+
