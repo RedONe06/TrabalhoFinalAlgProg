@@ -10,11 +10,10 @@ O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a 
 #include <math.h>
 #include <time.h>
 #include <string.h>
+#include <stdbool.h>
 #include "raylib.h"
-
-// Definição de boolean
-#define True 1
-#define False 0
+#include "canvas.h"
+#include "structs.h"
 
 // Número máximo de conteúdos
 #define MAX_BOMBAS 3
@@ -36,33 +35,6 @@ O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a 
 // Outras definições
 #define ALCANCE_BLOCOS_BOMBA 3
 
-/************ Structs ***************/
-
-// Definição de posição genérica no mapa linha e coluna
-typedef struct
-{
-    int lin;
-    int col;
-} POSICAO;
-
-// Informações do jogador
-typedef struct
-{
-    int nVidas; // Número de vidas disponíveis
-    int nBombas; // Número de bombas restantes
-    int pontuacao; // Pontuação atual do jogador
-    int nChaves; // Número de chaves encontradas
-} JOGADOR;
-
-// Informações de uma bomba
-typedef struct
-{
-    bool ativa; // Status atual da bomba
-    float tempoInicio; // O tempo em que a bomba foi colocada
-    POSICAO posicao;
-} BOMBA;
-
-
 /************ Protótipos *************/
 void criarInimigo(POSICAO posInimigos[], int lin, int col, int num);
 void criarChave(POSICAO posChaves[], int lin, int col, int num);
@@ -79,7 +51,7 @@ void salvarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInim
 /************* Main **************/
 int main()
 {
-    bool rodando = True; // Enquanto rodando == True o jogo irá rodar
+    bool rodando = true; // Enquanto rodando == True o jogo irá rodar
     int j, k;
 
     char mapa[LINHAS][COLUNAS];
@@ -128,7 +100,7 @@ int main()
     criarMapa(mapa, &posJogador, posInimigos, posChaves, contadores);
 
     // While principal do jogo
-    while (rodando == True)
+    while (rodando)
     {
         /**** MOVER O PERSONAGEM + MENU ****/
         //----------------------------------------------------------------------------------
@@ -141,35 +113,19 @@ int main()
         if (IsKeyPressed(KEY_ESCAPE)) rodando = False;//sair do jogo (apenas para testar)
         //----------------------------------------------------------------------------------
 
-        timerBombas(bombas, mapa, &jogador); //atualiza o timer e, se necessário, explode bombas
+        //timerBombas(bombas, mapa, &jogador); //atualiza o timer e, se necessário, explode bombas
 
         /****** Desenhar ******/
-
         BeginDrawing();
         ClearBackground(RAYWHITE); // Desenha o fundo branco
+
         DrawText(TextFormat("Vidas: %d\tBombas: %d\tPontos: %d\tChaves: %d", jogador.nVidas, jogador.nBombas, jogador.pontuacao, jogador.nChaves), 0, 520, 20, BLACK);//escreve vidas, bombas, pontos e chaves.
         DrawRectangle(posJogador.col, posJogador.lin, TAM_BLOCO, TAM_BLOCO, GREEN); // Desenha o personagem
 
-        // Desenha as bombas
-        for (int i = 0; i < MAX_BOMBAS; i++)
-        {
-            if (bombas[i].ativa)   //caso a bomba esteja ativa desenha ela
-            {
-                DrawRectangle(bombas[i].posicao.col * TAM_BLOCO, bombas[i].posicao.lin * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BLUE);
-            }
-        }
-
-        // Desenha as chaves
-        for (k = 0; k < MAX_CHAVES; k++)
-        {
-            DrawRectangle(posChaves[k].col, posChaves[k].lin, TAM_BLOCO, TAM_BLOCO, GOLD); // teste chave
-        }
-
-        // Desenha os inimigos
-        for (k = 0; k < MAX_INIMIGOS; k++)
-        {
-            DrawRectangle(posInimigos[k].col, posInimigos[k].lin, TAM_BLOCO, TAM_BLOCO, RED);
-        }
+        desenharParedes(mapa);
+        desenharInimigos(mapa, posInimigos);
+        desenharBombas(mapa, bombas);
+        desenharChaves(mapa, posChaves);
 
         EndDrawing();
 
@@ -178,7 +134,6 @@ int main()
 
     return 0;
 }
-
 
 /*********** Funções ************/
 
@@ -225,15 +180,6 @@ void criarMapa(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimi
                 posJogador->col = j * TAM_BLOCO; //posição inicial do jogador
                 mapa[i][j] = ' ';
                 break;
-
-            case 'W': // Parede indestrutivel
-                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, SKYBLUE);
-                break;
-
-            case 'D': // Parede destrutivel
-                DrawRectangle(i * TAM_BLOCO, j * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BROWN);
-                break;
-
             case 'K': // Posição chave
                 if (contadores[2] < MAX_CHAVES) // Ter certeza que não tenha mais que 3 chaves
                 {
@@ -257,8 +203,7 @@ void criarMapa(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimi
                 break;
 
             default:
-                printf("Char desconhecido: %c na posição [%d, %d] do mapa.\n", mapa[i][j], i, j); //verificar se não tem nenhuma outra letra no mapa
-                break;
+                continue;
             }
         }
     }
@@ -318,7 +263,7 @@ void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
 {
     for (int i = 0; i < MAX_BOMBAS; i++)
     {
-        if (bombas[i].ativa == True)
+        if (bombas[i].ativa)
         {
             if (4 >= 3.0) /**PRECISO DE ALGO UE CONTE POR 3 SEGUNDOS SEM PARAR COMPLETAMENTE O JOGO**/
             {
@@ -326,7 +271,7 @@ void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
                 explodirBomba(mapa, bombas[i].posicao.lin, bombas[i].posicao.col, bombas[i].ativa);//explode a bomba
 
                 jogador->nBombas++; //retorna a bomba pro inventario
-                bombas[i].ativa = False; //bomba fica como inativa
+                bombas[i].ativa = false; //bomba fica como inativa
             }
         }
     }
@@ -372,7 +317,7 @@ void explodirBomba(char mapa[LINHAS][COLUNAS], int lin, int col, bool ativa)
         if (blocoAtual == 'B')
         {
             mapa[lin - i][col] = ' '; //marca como espaço vazio
-            explodirBomba(mapa, novaLinha, col, True); //explode aquela bomba
+            explodirBomba(mapa, novaLinha, col, true); //explode aquela bomba
         }
     }
 
@@ -399,7 +344,7 @@ void explodirBomba(char mapa[LINHAS][COLUNAS], int lin, int col, bool ativa)
         if (novaLinha >= 0 && blocoAtual == 'B')
         {
             mapa[lin + i][col] = ' ';
-            explodirBomba(mapa, novaLinha, col, True);
+            explodirBomba(mapa, novaLinha, col, true);
         }
     }
 
@@ -428,7 +373,7 @@ void explodirBomba(char mapa[LINHAS][COLUNAS], int lin, int col, bool ativa)
         if (blocoAtual == 'B')
         {
             mapa[lin][col - i] = ' ';
-            explodirBomba(mapa, lin, novaColuna, True);
+            explodirBomba(mapa, lin, novaColuna, true);
         }
     }
 
@@ -455,7 +400,7 @@ void explodirBomba(char mapa[LINHAS][COLUNAS], int lin, int col, bool ativa)
         if (novaColuna >= 0 && blocoAtual == 'B')
         {
             mapa[lin][col + i] = ' ';
-            explodirBomba(mapa, lin, novaColuna, True);
+            explodirBomba(mapa, lin, novaColuna, true);
         }
     }
 }
@@ -464,10 +409,10 @@ void explodirBomba(char mapa[LINHAS][COLUNAS], int lin, int col, bool ativa)
 void menu(bool *rodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[])
 {
     printf("\nEntrou no menu.");
-    *rodando = False;
+    *rodando = false;
     int keyPressed = 0;
     char opcao = ' ';
-    bool i = True;
+    bool i = true;
 
     do
     {
@@ -492,22 +437,22 @@ void menu(bool *rodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICA
         case 'Q':  // Sair do jogo sem salvar
             printf("\nFechando...");
             CloseWindow();
-            *rodando = False;
-            i = False;
+            *rodando = false;
+            i = false;
             printf("  Sucesso!\n");
             break;
 
         case 'V': // Retornar ao jogo
             printf("\nRetornou ao jogo!");
-            i = False;
-            *rodando = True;
+            i = false;
+            *rodando = true;
             break;
 
         default:
             printf("\nComando incompreendido");
         }
     }
-    while (i == True);
+    while (i == true);
 }
 
 /* Inicia o jogo do zero */
@@ -524,7 +469,7 @@ void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimig
 
     // Reinicia as bombas
     for (int i = 0; i<MAX_BOMBAS; i++)
-        bombas[i].ativa = False;
+        bombas[i].ativa = false;
 
     // Lê novamente o arquivo e recria do 0
     lerMapaDoArquivo("bombermap.txt", mapa);
@@ -609,3 +554,4 @@ void salvarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInim
         printf("  Sucesso!");
     }
 }
+
