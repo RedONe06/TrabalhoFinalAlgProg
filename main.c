@@ -2,7 +2,6 @@
 habilidade de trabalho em equipe, consistindo na implementação de um jogo na linguagem de programação C.
 O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a biblioteca gráfica RayLib*/
 
-//Gabriel Iza Fauth
 
 /*********** Includes e Defines ***********/
 
@@ -50,10 +49,16 @@ void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao);
 void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], BOMBA bombas[], JOGADOR *jogador);
 bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
+void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLUNAS],int contadores[]);
+void mudarInimigos(POSICAO posInimigos[], clock_t *timer, int contadores[]);
 
 /************* Main **************/
 int main()
 {
+    clock_t timer_inimigos = 1 + clock();
+    clock_t timer_aleatorio = clock();
+
+
     bool rodando = true; // Enquanto rodando == True o jogo irá rodar
 
     char mapa[LINHAS][COLUNAS];
@@ -123,12 +128,100 @@ int main()
         EndDrawing();
 
         //----------------------------------------------------------------------------------
+
+        if (clock() >= timer_aleatorio) mudarInimigos(posInimigos, &timer_aleatorio, contadores);
+        if (clock() >= timer_inimigos) moverInimigos(posInimigos, &timer_inimigos, mapa, contadores);
+        printf("\nTimer Aleatorio: %ld, Timer Inimigos: %ld, Clock Atual: %ld", timer_aleatorio, timer_inimigos, clock());
     }
+
+
 
     return 0;
 }
 
 /*********** Funções ************/
+
+/* A cada 3 segundos escolhe uma direcao nova aleatoria para cada inimigo*/
+void mudarInimigos(POSICAO posInimigos[], clock_t *timer, int contadores[])
+{
+    int i, num;
+
+    for (i = 0; i < MAX_INIMIGOS; i++)
+    {
+        num = rand() % 4 + 1;
+        posInimigos[i].direcao = num;
+    }
+
+    *timer = 3 * CLOCKS_PER_SEC + clock();
+}
+
+/* A cada segundo, se possível, move o inimigo na direção determinada*/
+void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLUNAS],int contadores[])
+{
+    int i;
+    bool moveu;
+    for (i=0; i < MAX_INIMIGOS; i++)
+    {
+        int tentativas = 0; //Contador de tentativas para o código não ficar em um loop infinito caso tenha paredes nas 4 direções
+        moveu = False;
+        while(!moveu && tentativas < 4)
+        {
+            switch (posInimigos[i].direcao)
+            {
+            case 1:
+
+                if (mapa[posInimigos[i].lin + 1][posInimigos[i].col] == ' ') //Verifica se há uma parede no caminho
+                {
+                    mapa[posInimigos[i].lin][posInimigos[i].col] = ' '; //limpa a região onde estava
+                    posInimigos[i].lin++; // muda a posição
+                    moveu = True; //muda a booleana
+                }
+
+                break;
+            case 2:
+
+                if (mapa[posInimigos[i].lin][posInimigos[i].col + 1] == ' ')
+                {
+                    mapa[posInimigos[i].lin][posInimigos[i].col] = ' ';
+                    posInimigos[i].col++;
+                    moveu = True;
+                }
+
+                break;
+            case 3:
+
+                if (mapa[posInimigos[i].lin - 1][posInimigos[i].col] == ' ')
+                {
+                    mapa[posInimigos[i].lin][posInimigos[i].col] = ' ';
+                    posInimigos[i].lin--;
+                    moveu = True;
+                }
+
+                break;
+            case 4:
+
+                if (mapa[posInimigos[i].lin][posInimigos[i].col - 1] == ' ')
+                {
+                    mapa[posInimigos[i].lin][posInimigos[i].col] = ' ';
+                    posInimigos[i].col--;
+                    moveu = True;
+                }
+
+                break;
+            }
+            if (!moveu) //se encontrou uma parede ele muda de direção e aumenta as tentativas
+            {
+                posInimigos[i].direcao = (posInimigos[i].direcao % 4) + 1;
+                tentativas++;
+            }
+        }
+        mapa[posInimigos[i].lin][posInimigos[i].col] = 'E'; //coloca um 'E' na nova posição
+    }
+
+
+    *timer = clock() + CLOCKS_PER_SEC; // atualiza o timer
+}
+
 /* Dado um mapa, uma posicao atual e uma direção para movimento, checa se a posicao seguinte é possível (está vazia) ou não */
 bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao)
 {
@@ -224,13 +317,11 @@ void menu(bool *rodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICA
     printf("\nEntrou no menu.");
     *rodando = false;
     int keyPressed = 0;
-    char opcao = ' ';
+    char opcao = 'v';
     bool i = true;
 
     do
     {
-        keyPressed = GetCharPressed();
-        opcao = (char)keyPressed;
         opcao = toupper(opcao); // Normalização da opção
 
         switch (opcao)
@@ -267,6 +358,7 @@ void menu(bool *rodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICA
     }
     while (i == true);
 }
+
 
 /* Inicia o jogo do zero */
 void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[])

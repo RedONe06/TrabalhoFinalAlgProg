@@ -17,6 +17,7 @@ typedef struct
 {
     int lin;
     int col;
+    int direcao;
 } POSICAO;
 
 // Informações do jogador
