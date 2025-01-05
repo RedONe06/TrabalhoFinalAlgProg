@@ -2,6 +2,11 @@
 habilidade de trabalho em equipe, consistindo na implementação de um jogo na linguagem de programação C.
 O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a biblioteca gráfica RayLib*/
 
+/*Eu consegui adicionar uma lógica para andomizar o movimento dos inimigos mas por algum motivo a função de movimentação não está funcionando.
+eu não consigo ver nenhum erro na minha lógica e preciso de uma juda para resolver isso
+
+o menu está completamente quebrado. Todas as funções funcionam mas qualquer tentativa de dar scanf ou gets faz o jogo crashar então
+por enquanto deixei somente a função de retornar ao jogo*/
 
 /*********** Includes e Defines ***********/
 
@@ -42,21 +47,22 @@ void criarInimigo(POSICAO posInimigos[], int lin, int col, int num);
 void criarChave(POSICAO posChaves[], int lin, int col, int num);
 void menu(bool *rodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); // menu de pausa
 void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[]);
+void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], BOMBA bombas[], JOGADOR *jogador);
 void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador); //cuida do timer de 3 segundos das bombas
 void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA bomba, JOGADOR *jogador);
 void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); //cria um novo jogo
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao);
-void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], BOMBA bombas[], JOGADOR *jogador);
-bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
-void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLUNAS],int contadores[]);
-void mudarInimigos(POSICAO posInimigos[], clock_t *timer, int contadores[]);
+int direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
+void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
+void mudarDirecaoInimigos(POSICAO posInimigos[], clock_t *timer);
+void perderVida(JOGADOR *jogador);
 
 /************* Main **************/
 int main()
 {
     clock_t timer_inimigos = 1 + clock();
-    clock_t timer_aleatorio = clock();
+    clock_t timer_direcao = clock();
 
 
     bool rodando = true; // Enquanto rodando == True o jogo irá rodar
@@ -129,9 +135,9 @@ int main()
 
         //----------------------------------------------------------------------------------
 
-        if (clock() >= timer_aleatorio) mudarInimigos(posInimigos, &timer_aleatorio, contadores);
-        if (clock() >= timer_inimigos) moverInimigos(posInimigos, &timer_inimigos, mapa, contadores);
-        printf("\nTimer Aleatorio: %ld, Timer Inimigos: %ld, Clock Atual: %ld", timer_aleatorio, timer_inimigos, clock());
+        if (clock() >= timer_direcao) mudarDirecaoInimigos(posInimigos, &timer_direcao);
+        //if (clock() >= timer_inimigos) moverInimigos(posInimigos, &timer_inimigos, mapa, &jogador);
+        printf("\nTimer Aleatorio: %ld, Timer Inimigos: %ld, Clock Atual: %ld", timer_direcao, timer_inimigos, clock());
     }
 
 
@@ -142,7 +148,7 @@ int main()
 /*********** Funções ************/
 
 /* A cada 3 segundos escolhe uma direcao nova aleatoria para cada inimigo*/
-void mudarInimigos(POSICAO posInimigos[], clock_t *timer, int contadores[])
+void mudarDirecaoInimigos(POSICAO posInimigos[], clock_t *timer)
 {
     int i, num;
 
@@ -156,7 +162,7 @@ void mudarInimigos(POSICAO posInimigos[], clock_t *timer, int contadores[])
 }
 
 /* A cada segundo, se possível, move o inimigo na direção determinada*/
-void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLUNAS],int contadores[])
+void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLUNAS],JOGADOR *jogador)
 {
     int i;
     bool moveu;
@@ -176,6 +182,9 @@ void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLU
                     posInimigos[i].lin++; // muda a posição
                     moveu = True; //muda a booleana
                 }
+                else if (mapa[posInimigos[i].lin + 1][posInimigos[i].col] == 'J'){ // se encontrar o jogador...
+                    perderVida(jogador); // ...tira uma vida dele
+                }
 
                 break;
             case 2:
@@ -185,6 +194,9 @@ void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLU
                     mapa[posInimigos[i].lin][posInimigos[i].col] = ' ';
                     posInimigos[i].col++;
                     moveu = True;
+                }
+                else if (mapa[posInimigos[i].lin][posInimigos[i].col + 1] == 'J'){
+                    perderVida(jogador);
                 }
 
                 break;
@@ -196,6 +208,9 @@ void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLU
                     posInimigos[i].lin--;
                     moveu = True;
                 }
+                else if (mapa[posInimigos[i].lin - 1][posInimigos[i].col] == 'J'){
+                    perderVida(jogador);
+                }
 
                 break;
             case 4:
@@ -205,6 +220,9 @@ void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLU
                     mapa[posInimigos[i].lin][posInimigos[i].col] = ' ';
                     posInimigos[i].col--;
                     moveu = True;
+                }
+                else if (mapa[posInimigos[i].lin ][posInimigos[i].col - 1] == 'J'){
+                    perderVida(jogador);
                 }
 
                 break;
@@ -223,24 +241,33 @@ void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLU
 }
 
 /* Dado um mapa, uma posicao atual e uma direção para movimento, checa se a posicao seguinte é possível (está vazia) ou não */
-bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao)
+int direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao)
 {
+    // 0 == Parede, 1 == Livre, 2 == Inimigo, 3 == Chave
     switch(direcao)
     {
     case 0: // Baixo
-        if (mapa[posicaoAtual.lin + 1][posicaoAtual.col] == ' ') return true;
+        if (mapa[posicaoAtual.lin + 1][posicaoAtual.col] == ' ') return 1;
+        else if (mapa[posicaoAtual.lin + 1][posicaoAtual.col] == 'E') return 2;
+        else if (mapa[posicaoAtual.lin + 1][posicaoAtual.col] == 'K') return 3;
         break;
     case 1: // Cima
-        if (mapa[posicaoAtual.lin - 1][posicaoAtual.col] == ' ') return true;
+        if (mapa[posicaoAtual.lin - 1][posicaoAtual.col] == ' ') return 1;
+        else if (mapa[posicaoAtual.lin - 1][posicaoAtual.col] == 'E') return 2;
+        else if (mapa[posicaoAtual.lin - 1][posicaoAtual.col] == 'K') return 3;
         break;
     case 2: // Esquerda
-        if (mapa[posicaoAtual.lin][posicaoAtual.col - 1] == ' ') return true;
+        if (mapa[posicaoAtual.lin][posicaoAtual.col - 1] == ' ') return 1;
+        else if (mapa[posicaoAtual.lin][posicaoAtual.col - 1] == 'E') return 2;
+        else if (mapa[posicaoAtual.lin ][posicaoAtual.col - 1] == 'K') return 3;
         break;
     default: // Direita
-        if (mapa[posicaoAtual.lin][posicaoAtual.col + 1] == ' ') return true;
+        if (mapa[posicaoAtual.lin][posicaoAtual.col + 1] == ' ') return 1;
+        else if (mapa[posicaoAtual.lin][posicaoAtual.col + 1] == 'E') return 2;
+        else if (mapa[posicaoAtual.lin ][posicaoAtual.col + 1] == 'K') return 3;
     }
 
-    return false;
+    return 0;
 }
 
 POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao)
@@ -386,29 +413,92 @@ void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimig
 
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
 {
-    if (IsKeyPressed(KEY_RIGHT) && direcaoEstaLivre(mapa, jogador->posicao, 3))
+    if (IsKeyPressed(KEY_RIGHT))
     {
+        switch (direcaoEstaLivre(mapa, jogador->posicao, 3)){
+
+    case 1: // se encontrar um espaço livre
         mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
-        mapa[jogador->posicao.lin][jogador->posicao.col + 1] = 'J';
-        jogador->direcao = 3; // Direita
+            mapa[jogador->posicao.lin][jogador->posicao.col + 1] = 'J';
+            jogador->direcao = 3; // Direita
+            break;
+    case 2: // se encontrar um inimigo
+        perderVida(jogador);
+        break;
+    case 3: // se encontrar uma chave
+        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+        mapa[jogador->posicao.lin ][jogador->posicao.col +1] = 'J';
+        jogador->nChaves++;
+        jogador->direcao = 3;
+        break;
+        }
     }
-    else if (IsKeyPressed(KEY_LEFT) && direcaoEstaLivre(mapa, jogador->posicao, 2))
+    else if (IsKeyPressed(KEY_LEFT))
     {
+        switch (direcaoEstaLivre(mapa, jogador->posicao, 2)){
+
+    case 1:
+        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+            mapa[jogador->posicao.lin ][jogador->posicao.col - 1] = 'J';
+            jogador->direcao = 2; // Esquerda
+            break;
+    case 2:
+        perderVida(jogador);
+        break;
+    case 3:
         mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
         mapa[jogador->posicao.lin][jogador->posicao.col - 1] = 'J';
-        jogador->direcao = 2; // Esquerda
+        jogador->nChaves++;
+        jogador->direcao = 2;
+        break;
+        }
     }
-    else if (IsKeyPressed(KEY_UP) && direcaoEstaLivre(mapa, jogador->posicao, 1))
+    else if (IsKeyPressed(KEY_UP))
     {
+        switch (direcaoEstaLivre(mapa, jogador->posicao, 1)){
+
+    case 1:
+        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+            mapa[jogador->posicao.lin - 1][jogador->posicao.col] = 'J';
+            jogador->direcao = 1; // Cima
+            break;
+    case 2:
+        perderVida(jogador);
+        break;
+    case 3:
         mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
         mapa[jogador->posicao.lin - 1][jogador->posicao.col] = 'J';
-        jogador->direcao = 1; // Cima
+        jogador->nChaves++;
+        jogador->direcao = 1;
+        break;
+        }
     }
-    else if (IsKeyPressed(KEY_DOWN) && direcaoEstaLivre(mapa, jogador->posicao, 0))
-    {
+    else if (IsKeyPressed(KEY_DOWN)){
+    switch (direcaoEstaLivre(mapa, jogador->posicao, 0)){
+
+    case 1:
+        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+            mapa[jogador->posicao.lin + 1][jogador->posicao.col] = 'J';
+            jogador->direcao = 0; // Baixo
+            break;
+    case 2:
+        perderVida(jogador);
+        break;
+    case 3:
         mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
         mapa[jogador->posicao.lin + 1][jogador->posicao.col] = 'J';
-        jogador->direcao = 0; // Baixo
-    }
+        jogador->nChaves++;
+        jogador->direcao = 0;
+        break;
+        }
 }
 
+}
+
+void perderVida(JOGADOR *jogador){
+    if (jogador->nVidas > 1){
+    jogador->nVidas--;
+    jogador->pontuacao -= 100;
+    } else exit(0);
+
+}
