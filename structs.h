@@ -20,6 +20,14 @@ typedef struct
     int direcao;
 } POSICAO;
 
+// Informações de uma bomba
+typedef struct
+{
+    bool ativa;
+    time_t tempoInicio; // O tempo em que a bomba foi colocada
+    POSICAO posicao;
+} BOMBA;
+
 // Informações do jogador
 typedef struct
 {
@@ -29,13 +37,9 @@ typedef struct
     int nChaves; // Número de chaves encontradas
     POSICAO posicao; // Posicao no mapa
     int direcao; // 0 = Para cima, 1 = Para baixo, 2 = Para esquerda, 3 = Para direita
+    BOMBA bombas[3];
 } JOGADOR;
 
-// Informações de uma bomba
-typedef struct
-{
-    time_t tempoInicio; // O tempo em que a bomba foi colocada
-    POSICAO posicao;
-} BOMBA;
+
 
 #endif

@@ -45,10 +45,10 @@ por enquanto deixei somente a função de retornar ao jogo*/
 /************ Protótipos *************/
 void criarInimigo(POSICAO posInimigos[], int lin, int col, int num);
 void criarChave(POSICAO posChaves[], int lin, int col, int num);
-void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[]);
-void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], BOMBA bombas[], JOGADOR *jogador);
+void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS]);
+void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador); //cuida do timer de 3 segundos das bombas
-void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA bomba, JOGADOR *jogador);
+void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA *bomba, JOGADOR *jogador);
 void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); //cria um novo jogo
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 void controlarMenu(bool *menuEstaRodando, char mapa[LINHAS][COLUNAS]);
@@ -101,14 +101,15 @@ int main()
     POSICAO posChaves[MAX_CHAVES];
     POSICAO posJogador;
 
-    BOMBA bombas[MAX_BOMBAS] = { 0 }; // Inicia as bombas como inativas
-
     // Informações sobre o jogador
     JOGADOR jogador;
     jogador.nVidas = 3;
     jogador.nBombas = 3;
     jogador.pontuacao = 0;
     jogador.nChaves = 0;
+    jogador.bombas[0].ativa = false;
+    jogador.bombas[1].ativa = false;
+    jogador.bombas[2].ativa = false;
 
     // While principal do jogo
     while (rodando)
@@ -126,14 +127,17 @@ int main()
         if(!menuEstaRodando)
         {
             controlarMovimentacao(mapa, &jogador);
-            if (IsKeyPressed(KEY_B)) colocarBomba(&jogador, mapa, bombas);
+            if (IsKeyPressed(KEY_B)) colocarBomba(&jogador, mapa);
+            verificaTimerDasBombas(mapa, &jogador);
         }
         //----------------------------------------------------------------------------------
         /**** MENU ****/
         if (!menuEstaRodando && IsKeyPressed(KEY_TAB)) // Ativar menu
         {
             menuEstaRodando = true;
-        } else if (menuEstaRodando){
+        }
+        else if (menuEstaRodando)
+        {
             controlarMenu(&menuEstaRodando, mapa);
         }
 
@@ -333,7 +337,7 @@ POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao)
 }
 
 /* Posiciona a bomba no mapa */
-void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[])
+void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS])
 {
     // Se não tiver bombas ou espaço para colocar bomba, não colocar bomba
     if (jogador->nBombas <= 0 || !direcaoEstaLivre(mapa, jogador->posicao, jogador->direcao)) return;
@@ -343,35 +347,38 @@ void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[])
     // Pega o index da bomba baseado na quantidade disponível no arsenal
     int ultimaBomba = jogador->nBombas - 1;
 
-    bombas[ultimaBomba].tempoInicio = time(NULL); // Armazena o tempo atual
-    bombas[ultimaBomba].posicao.lin = posicaoBomba.lin;
-    bombas[ultimaBomba].posicao.col = posicaoBomba.col;
+    jogador->bombas[ultimaBomba].tempoInicio = time(NULL); // Armazena o tempo atual
+    jogador->bombas[ultimaBomba].posicao.lin = posicaoBomba.lin;
+    jogador->bombas[ultimaBomba].posicao.col = posicaoBomba.col;
+    jogador->bombas[ultimaBomba].ativa = true;
 
     mapa[posicaoBomba.lin][posicaoBomba.col] = 'X'; // Coloca um B para marcar a bomba no mapa
     jogador->nBombas--; // Decrementa o número de bombas do arsenal
 }
 
-void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], BOMBA bombas[], JOGADOR *jogador)
+void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
 {
-    int bombasAtivas = MAX_BOMBAS - jogador->nBombas;
-
-    for (int i = 0; i < bombasAtivas; i++)
+    for (int i = 0; i < MAX_BOMBAS; i++)
     {
-        double intervaloEmSegundos = difftime(time(NULL), bombas[i].tempoInicio);
-        if (intervaloEmSegundos < 3) continue;
+        if (jogador->bombas[i].ativa == false) continue;
 
-        // Se já se passaram 3 segundos do tempo de início da bomba, explodir ela
-        explodirBomba(mapa, bombas[i], jogador);
+        double intervaloEmSegundos = difftime(time(NULL), jogador->bombas[i].tempoInicio)/10;
+        intervaloEmSegundos = (intervaloEmSegundos - floor(intervaloEmSegundos)) * 10;
+        if ((int)intervaloEmSegundos > 3)
+        {
+            // Se já se passaram 3 segundos do tempo de início da bomba, explodir ela
+            explodirBomba(mapa, &jogador->bombas[i], jogador);
+        }
     }
 }
 
-void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA bomba, JOGADOR *jogador)
+void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA *bomba, JOGADOR *jogador)
 {
     // Limpa o espaço da bomba e marca como um espaço vazio
-    // mapa[bomba.posicao.lin][bomba.posicao.col] = ' ';
+    mapa[bomba->posicao.lin][bomba->posicao.col] = ' ';
+    bomba->ativa = false;
     jogador->nBombas++;
-
-    DrawRectangle(bomba.posicao.col * TAM_BLOCO, bomba.posicao.lin * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, WHITE);
+    //desenharExplosao(mapa, jogador);
 }
 
 /* Inicia o jogo do zero */

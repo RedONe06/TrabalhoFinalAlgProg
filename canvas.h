@@ -10,4 +10,5 @@
 void desenharMapa(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 void desenharMenu();
 void desenharBarraStatus(JOGADOR *jogador);
+void desenharExplosao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, POSICAO posBomba);
 #endif

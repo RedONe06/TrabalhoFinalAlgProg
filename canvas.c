@@ -56,7 +56,8 @@ void desenharBarraStatus(JOGADOR *jogador)
     DrawText(TextFormat("Pontuacao: %d", jogador->pontuacao), LARGURA - 200, 540, 20, BLACK);
 }
 
-void desenharMenu(){
+void desenharMenu()
+{
     int yTitulo = ALTURA / 4;
     int xTitulo = LARGURA / 2;
     int xTexto = LARGURA / 3;
@@ -67,4 +68,25 @@ void desenharMenu(){
     DrawText("[S] Salvar jogo", xTexto, yTitulo + 80, 20, BLACK);
     DrawText("[Q] Sair do jogo", xTexto, yTitulo + 105, 20, BLACK);
     DrawText("[V] Voltar", xTexto, yTitulo + 130, 20, BLACK);
+}
+
+void desenharExplosao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, POSICAO posBomba)
+{
+    /*
+    for(int i = 0; i < 3; i++)
+    {
+        POSICAO proximaPosicao = acharProximaPosicao(posBomba, 0);
+        char conteudo = mapa[proximaPosicao.lin][proximaPosicao.col];
+        if (conteudo == 'J')
+        {
+            printf("\nMatar jogador");
+            break;
+        }
+        else if(conteudo == 'W') {}
+        else if(conteudo == 'D') {}
+        else if(conteudo == 'B') {}
+        else if(conteudo == 'K') {}
+        else if(conteudo == 'E') {}
+        else if(conteudo == 'X') {}
+    }*/
 }
