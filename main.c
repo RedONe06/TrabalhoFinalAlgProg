@@ -53,7 +53,8 @@ void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA bomba, JOGADOR *jogador);
 void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); //cria um novo jogo
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao);
-int direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
+bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
+int objetoNaDirecao(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
 void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 void mudarDirecaoInimigos(POSICAO posInimigos[], clock_t *timer);
 void perderVida(JOGADOR *jogador);
@@ -63,7 +64,6 @@ int main()
 {
     clock_t timer_inimigos = 1 + clock();
     clock_t timer_direcao = clock();
-
 
     bool rodando = true; // Enquanto rodando == True o jogo irá rodar
 
@@ -130,14 +130,16 @@ int main()
         if (IsKeyPressed(KEY_ESCAPE)) rodando = False;//sair do jogo (apenas para testar)
         //----------------------------------------------------------------------------------
 
-        verificaTimerDasBombas(mapa, bombas, &jogador);
+        //verificaTimerDasBombas(mapa, bombas, &jogador);
         EndDrawing();
 
         //----------------------------------------------------------------------------------
 
         if (clock() >= timer_direcao) mudarDirecaoInimigos(posInimigos, &timer_direcao);
         //if (clock() >= timer_inimigos) moverInimigos(posInimigos, &timer_inimigos, mapa, &jogador);
-        printf("\nTimer Aleatorio: %ld, Timer Inimigos: %ld, Clock Atual: %ld", timer_direcao, timer_inimigos, clock());
+
+        // ***** Evitar colocar printf() para rodar com o jogo pq ele diminui a performance **** descomenta só quando for usar pra debugar
+        // printf("\nTimer Aleatorio: %ld, Timer Inimigos: %ld, Clock Atual: %ld", timer_direcao, timer_inimigos, clock());
     }
 
 
@@ -182,7 +184,8 @@ void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLU
                     posInimigos[i].lin++; // muda a posição
                     moveu = True; //muda a booleana
                 }
-                else if (mapa[posInimigos[i].lin + 1][posInimigos[i].col] == 'J'){ // se encontrar o jogador...
+                else if (mapa[posInimigos[i].lin + 1][posInimigos[i].col] == 'J')  // se encontrar o jogador...
+                {
                     perderVida(jogador); // ...tira uma vida dele
                 }
 
@@ -195,7 +198,8 @@ void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLU
                     posInimigos[i].col++;
                     moveu = True;
                 }
-                else if (mapa[posInimigos[i].lin][posInimigos[i].col + 1] == 'J'){
+                else if (mapa[posInimigos[i].lin][posInimigos[i].col + 1] == 'J')
+                {
                     perderVida(jogador);
                 }
 
@@ -208,7 +212,8 @@ void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLU
                     posInimigos[i].lin--;
                     moveu = True;
                 }
-                else if (mapa[posInimigos[i].lin - 1][posInimigos[i].col] == 'J'){
+                else if (mapa[posInimigos[i].lin - 1][posInimigos[i].col] == 'J')
+                {
                     perderVida(jogador);
                 }
 
@@ -221,7 +226,8 @@ void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLU
                     posInimigos[i].col--;
                     moveu = True;
                 }
-                else if (mapa[posInimigos[i].lin ][posInimigos[i].col - 1] == 'J'){
+                else if (mapa[posInimigos[i].lin ][posInimigos[i].col - 1] == 'J')
+                {
                     perderVida(jogador);
                 }
 
@@ -241,7 +247,7 @@ void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLU
 }
 
 /* Dado um mapa, uma posicao atual e uma direção para movimento, checa se a posicao seguinte é possível (está vazia) ou não */
-int direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao)
+int objetoNaDirecao(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao)
 {
     // 0 == Parede, 1 == Livre, 2 == Inimigo, 3 == Chave
     switch(direcao)
@@ -270,6 +276,26 @@ int direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direc
     return 0;
 }
 
+bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao)
+{
+    switch(direcao)
+    {
+    case 0: // Baixo
+        if (mapa[posicaoAtual.lin + 1][posicaoAtual.col] == ' ') return true;
+        break;
+    case 1: // Cima
+        if (mapa[posicaoAtual.lin - 1][posicaoAtual.col] == ' ') return true;
+        break;
+    case 2: // Esquerda
+        if (mapa[posicaoAtual.lin][posicaoAtual.col - 1] == ' ') return true;
+        break;
+    default: // Direita
+        if (mapa[posicaoAtual.lin][posicaoAtual.col + 1] == ' ') return true;
+    }
+
+    return false;
+}
+
 POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao)
 {
     POSICAO novaPosicao;
@@ -278,18 +304,18 @@ POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao)
     {
     case 0: // Baixo
         novaPosicao.col = posicaoAtual.col;
-        novaPosicao.lin = posicaoAtual.lin++;
+        novaPosicao.lin = posicaoAtual.lin + 1;
         break;
     case 1: // Cima
         novaPosicao.col = posicaoAtual.col;
-        novaPosicao.lin = posicaoAtual.lin--;
+        novaPosicao.lin = posicaoAtual.lin - 1;
         break;
     case 2: // Esquerda
-        novaPosicao.col = posicaoAtual.col--;
+        novaPosicao.col = posicaoAtual.col - 1;
         novaPosicao.lin = posicaoAtual.lin;
         break;
     default: // Direita
-        novaPosicao.col = posicaoAtual.col++;
+        novaPosicao.col = posicaoAtual.col + 1;
         novaPosicao.lin = posicaoAtual.lin;
     }
 
@@ -332,7 +358,7 @@ void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], BOMBA bombas[], JOGADOR 
 void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA bomba, JOGADOR *jogador)
 {
     // Limpa o espaço da bomba e marca como um espaço vazio
-    mapa[bomba.posicao.lin][bomba.posicao.col] = ' ';
+    // mapa[bomba.posicao.lin][bomba.posicao.col] = ' ';
     jogador->nBombas++;
 
     DrawRectangle(bomba.posicao.col * TAM_BLOCO, bomba.posicao.lin * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, WHITE);
@@ -408,97 +434,102 @@ void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimig
     printf("\n\n----- NOVO JOGO INICIADO! -----\n");
 }
 
-
-
-
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
 {
     if (IsKeyPressed(KEY_RIGHT))
     {
-        switch (direcaoEstaLivre(mapa, jogador->posicao, 3)){
+        switch (objetoNaDirecao(mapa, jogador->posicao, 3))
+        {
 
-    case 1: // se encontrar um espaço livre
-        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+        case 1: // se encontrar um espaço livre
+            mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
             mapa[jogador->posicao.lin][jogador->posicao.col + 1] = 'J';
             jogador->direcao = 3; // Direita
             break;
-    case 2: // se encontrar um inimigo
-        perderVida(jogador);
-        break;
-    case 3: // se encontrar uma chave
-        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
-        mapa[jogador->posicao.lin ][jogador->posicao.col +1] = 'J';
-        jogador->nChaves++;
-        jogador->direcao = 3;
-        break;
+        case 2: // se encontrar um inimigo
+            perderVida(jogador);
+            break;
+        case 3: // se encontrar uma chave
+            mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+            mapa[jogador->posicao.lin ][jogador->posicao.col +1] = 'J';
+            jogador->nChaves++;
+            jogador->direcao = 3;
+            break;
         }
     }
     else if (IsKeyPressed(KEY_LEFT))
     {
-        switch (direcaoEstaLivre(mapa, jogador->posicao, 2)){
+        switch (direcaoEstaLivre(mapa, jogador->posicao, 2))
+        {
 
-    case 1:
-        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+        case 1:
+            mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
             mapa[jogador->posicao.lin ][jogador->posicao.col - 1] = 'J';
             jogador->direcao = 2; // Esquerda
             break;
-    case 2:
-        perderVida(jogador);
-        break;
-    case 3:
-        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
-        mapa[jogador->posicao.lin][jogador->posicao.col - 1] = 'J';
-        jogador->nChaves++;
-        jogador->direcao = 2;
-        break;
+        case 2:
+            perderVida(jogador);
+            break;
+        case 3:
+            mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+            mapa[jogador->posicao.lin][jogador->posicao.col - 1] = 'J';
+            jogador->nChaves++;
+            jogador->direcao = 2;
+            break;
         }
     }
     else if (IsKeyPressed(KEY_UP))
     {
-        switch (direcaoEstaLivre(mapa, jogador->posicao, 1)){
+        switch (objetoNaDirecao(mapa, jogador->posicao, 1))
+        {
 
-    case 1:
-        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+        case 1:
+            mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
             mapa[jogador->posicao.lin - 1][jogador->posicao.col] = 'J';
             jogador->direcao = 1; // Cima
             break;
-    case 2:
-        perderVida(jogador);
-        break;
-    case 3:
-        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
-        mapa[jogador->posicao.lin - 1][jogador->posicao.col] = 'J';
-        jogador->nChaves++;
-        jogador->direcao = 1;
-        break;
+        case 2:
+            perderVida(jogador);
+            break;
+        case 3:
+            mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+            mapa[jogador->posicao.lin - 1][jogador->posicao.col] = 'J';
+            jogador->nChaves++;
+            jogador->direcao = 1;
+            break;
         }
     }
-    else if (IsKeyPressed(KEY_DOWN)){
-    switch (direcaoEstaLivre(mapa, jogador->posicao, 0)){
+    else if (IsKeyPressed(KEY_DOWN))
+    {
+        switch (objetoNaDirecao(mapa, jogador->posicao, 0))
+        {
 
-    case 1:
-        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+        case 1:
+            mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
             mapa[jogador->posicao.lin + 1][jogador->posicao.col] = 'J';
             jogador->direcao = 0; // Baixo
             break;
-    case 2:
-        perderVida(jogador);
-        break;
-    case 3:
-        mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
-        mapa[jogador->posicao.lin + 1][jogador->posicao.col] = 'J';
-        jogador->nChaves++;
-        jogador->direcao = 0;
-        break;
+        case 2:
+            perderVida(jogador);
+            break;
+        case 3:
+            mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
+            mapa[jogador->posicao.lin + 1][jogador->posicao.col] = 'J';
+            jogador->nChaves++;
+            jogador->direcao = 0;
+            break;
         }
-}
+    }
 
 }
 
-void perderVida(JOGADOR *jogador){
-    if (jogador->nVidas > 1){
-    jogador->nVidas--;
-    jogador->pontuacao -= 100;
-    } else exit(0);
+void perderVida(JOGADOR *jogador)
+{
+    if (jogador->nVidas > 1)
+    {
+        jogador->nVidas--;
+        jogador->pontuacao -= 100;
+    }
+    else exit(0);
 
 }
