@@ -8,5 +8,6 @@
 
 // Declaração de funções
 void desenharMapa(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
-
+void desenharMenu();
+void desenharBarraStatus(JOGADOR *jogador);
 #endif

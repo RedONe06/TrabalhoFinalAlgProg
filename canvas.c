@@ -5,6 +5,10 @@
 #define TAM_BLOCO 20 // Tamanho de cada bloco
 #define TAMANHO_MAPA 1500 // Total de blocos 20pxX20px no mapa (25 * 60)
 
+// Dimensões máximas da tela do jogo em px
+#define ALTURA 600
+#define LARGURA 1200
+
 // Número máximo de conteúdos
 #define MAX_BOMBAS 3
 #define MAX_CHAVES 3
@@ -43,4 +47,24 @@ void desenharMapa(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
             }
         }
     }
+}
+
+void desenharBarraStatus(JOGADOR *jogador)
+{
+    DrawText(TextFormat("Vidas: %d\tBombas: %d", jogador->nVidas, jogador->nBombas), 50, 540, 20, BLACK);
+    DrawText(TextFormat("Chaves: %d", jogador->nChaves), LARGURA / 2.2, 540, 20, BLACK);
+    DrawText(TextFormat("Pontuacao: %d", jogador->pontuacao), LARGURA - 200, 540, 20, BLACK);
+}
+
+void desenharMenu(){
+    int yTitulo = ALTURA / 4;
+    int xTitulo = LARGURA / 2;
+    int xTexto = LARGURA / 3;
+
+    DrawText("Menu", xTitulo, yTitulo, 20, BLACK);
+    DrawText("[N] Novo jogo", xTexto, yTitulo + 30, 20, BLACK);
+    DrawText("[C] Carregar jogo", xTexto, yTitulo + 55, 20, BLACK);
+    DrawText("[S] Salvar jogo", xTexto, yTitulo + 80, 20, BLACK);
+    DrawText("[Q] Sair do jogo", xTexto, yTitulo + 105, 20, BLACK);
+    DrawText("[V] Voltar", xTexto, yTitulo + 130, 20, BLACK);
 }

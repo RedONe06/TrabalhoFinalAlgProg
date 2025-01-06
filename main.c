@@ -45,13 +45,13 @@ por enquanto deixei somente a função de retornar ao jogo*/
 /************ Protótipos *************/
 void criarInimigo(POSICAO posInimigos[], int lin, int col, int num);
 void criarChave(POSICAO posChaves[], int lin, int col, int num);
-void menu(bool *rodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); // menu de pausa
 void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS], BOMBA bombas[]);
 void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], BOMBA bombas[], JOGADOR *jogador);
 void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador); //cuida do timer de 3 segundos das bombas
 void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA bomba, JOGADOR *jogador);
 void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); //cria um novo jogo
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
+void controlarMenu(bool *menuEstaRodando, char mapa[LINHAS][COLUNAS]);
 POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao);
 bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
 int objetoNaDirecao(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
@@ -66,6 +66,7 @@ int main()
     clock_t timer_direcao = clock();
 
     bool rodando = true; // Enquanto rodando == True o jogo irá rodar
+    bool menuEstaRodando = false;
 
     char mapa[LINHAS][COLUNAS];
 
@@ -109,25 +110,34 @@ int main()
     jogador.pontuacao = 0;
     jogador.nChaves = 0;
 
-    // Criar o mapa adicionando as posições dos objetos às respectivas structs
-    //criarMapa(mapa, &posJogador, posInimigos, posChaves, contadores);
-
     // While principal do jogo
     while (rodando)
     {
-        /****** Desenhar ******/
+        /****** DESENHO ******/
         BeginDrawing();
         ClearBackground(RAYWHITE); // Desenha o fundo branco
 
-        DrawText(TextFormat("Vidas: %d\tBombas: %d\tPontos: %d\tChaves: %d", jogador.nVidas, jogador.nBombas, jogador.pontuacao, jogador.nChaves), 0, 520, 20, BLACK);//escreve vidas, bombas, pontos e chaves.
-        desenharMapa(mapa, &jogador);
+        desenharBarraStatus(&jogador);
+        if (!menuEstaRodando) desenharMapa(mapa, &jogador);
+        else desenharMenu();
 
-        /**** MOVER O PERSONAGEM + MENU ****/
+        /**** PERSONAGEM ****/
         //----------------------------------------------------------------------------------
-        controlarMovimentacao(mapa, &jogador);
-        if (IsKeyPressed(KEY_B)) colocarBomba(&jogador, mapa, bombas);
-        if (IsKeyPressed(KEY_TAB)) menu(&rodando, mapa, &posJogador, posInimigos, posChaves, &jogador, bombas, contadores); //abrir menu
-        if (IsKeyPressed(KEY_ESCAPE)) rodando = False;//sair do jogo (apenas para testar)
+        if(!menuEstaRodando)
+        {
+            controlarMovimentacao(mapa, &jogador);
+            if (IsKeyPressed(KEY_B)) colocarBomba(&jogador, mapa, bombas);
+        }
+        //----------------------------------------------------------------------------------
+        /**** MENU ****/
+        if (!menuEstaRodando && IsKeyPressed(KEY_TAB)) // Ativar menu
+        {
+            menuEstaRodando = true;
+        } else if (menuEstaRodando){
+            controlarMenu(&menuEstaRodando, mapa);
+        }
+
+        if (IsKeyPressed(KEY_ESCAPE)) rodando = false; // Sair do jogo
         //----------------------------------------------------------------------------------
 
         //verificaTimerDasBombas(mapa, bombas, &jogador);
@@ -364,55 +374,6 @@ void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA bomba, JOGADOR *jogador)
     DrawRectangle(bomba.posicao.col * TAM_BLOCO, bomba.posicao.lin * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, WHITE);
 }
 
-/* Roda o menu de pausa */
-void menu(bool *rodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[])
-{
-    printf("\nEntrou no menu.");
-    *rodando = false;
-    int keyPressed = 0;
-    char opcao = 'v';
-    bool i = true;
-
-    do
-    {
-        opcao = toupper(opcao); // Normalização da opção
-
-        switch (opcao)
-        {
-        case 'N': // Iniciar um novo jogo do zero
-            novoJogo(mapa, posJogador, posInimigos, posChaves, jogador, bombas, contadores);
-            break;
-
-        case 'C': // Carregar um arquivo binario de um jogo salvo
-            carregarJogo(mapa, posJogador, posInimigos, posChaves, jogador, bombas, contadores);
-            break;
-
-        case 'S': // Salvar o jogo (PRECISA SER EM UM ARQUIVO BINÁRIO)
-            salvarJogo(mapa, posJogador, posInimigos, posChaves, jogador, bombas, contadores);
-            break;
-
-        case 'Q':  // Sair do jogo sem salvar
-            printf("\nFechando...");
-            CloseWindow();
-            *rodando = false;
-            i = false;
-            printf("  Sucesso!\n");
-            break;
-
-        case 'V': // Retornar ao jogo
-            printf("\nRetornou ao jogo!");
-            i = false;
-            *rodando = true;
-            break;
-
-        default:
-            printf("\nComando incompreendido");
-        }
-    }
-    while (i == true);
-}
-
-
 /* Inicia o jogo do zero */
 void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[])
 {
@@ -440,7 +401,6 @@ void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
     {
         switch (objetoNaDirecao(mapa, jogador->posicao, 3))
         {
-
         case 1: // se encontrar um espaço livre
             mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
             mapa[jogador->posicao.lin][jogador->posicao.col + 1] = 'J';
@@ -520,8 +480,40 @@ void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
             break;
         }
     }
-
 }
+
+void controlarMenu(bool *menuEstaRodando, char mapa[LINHAS][COLUNAS])
+{
+    if(IsKeyPressed(KEY_N))
+    {
+        printf("\nIniciar novo jogo (Implementar)");
+        // novoJogo();
+        *menuEstaRodando = false;
+    }
+    else if(IsKeyPressed(KEY_C))
+    {
+        printf("\nCarregar jogo (Implementar)");
+        // carregarJogo();
+        *menuEstaRodando = false;
+    }
+    else if(IsKeyPressed(KEY_S))
+    {
+        printf("\nSalvar jogo (Implementar)");
+        // salvarJogo();
+        *menuEstaRodando = false;
+    }
+    else if(IsKeyPressed(KEY_Q))
+    {
+        printf("\nSaindo do jogo");
+        CloseWindow();
+    }
+    else if (IsKeyPressed(KEY_V))
+    {
+        printf("Voltando ao jogo");
+        *menuEstaRodando = false;
+    }
+}
+
 
 void perderVida(JOGADOR *jogador)
 {
