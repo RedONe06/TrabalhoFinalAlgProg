@@ -62,12 +62,21 @@ void desenharMenu()
     int xTitulo = LARGURA / 2;
     int xTexto = LARGURA / 3;
 
-    DrawText("Menu", xTitulo, yTitulo, 20, BLACK);
+    DrawText("Menu", xTitulo, yTitulo, 40, BLACK);
     DrawText("[N] Novo jogo", xTexto, yTitulo + 30, 20, BLACK);
     DrawText("[C] Carregar jogo", xTexto, yTitulo + 55, 20, BLACK);
     DrawText("[S] Salvar jogo", xTexto, yTitulo + 80, 20, BLACK);
     DrawText("[Q] Sair do jogo", xTexto, yTitulo + 105, 20, BLACK);
     DrawText("[V] Voltar", xTexto, yTitulo + 130, 20, BLACK);
+}
+
+void desenharProxNivel()
+{
+    clock_t tempo = clock() + CLOCKS_PER_SEC * 4;
+    while (tempo > clock()){
+        DrawText("AVANCANDO PARA ", LARGURA / 5 , ALTURA / 2 - 85 , 80, BLACK);
+        DrawText("A PRÓXIMA FASE", LARGURA / 5 , ALTURA / 2 , 80, BLACK);
+    }
 }
 
 void desenharExplosao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, POSICAO posBomba)

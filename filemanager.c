@@ -14,10 +14,15 @@
 #define MAX_INIMIGOS 5
 
 /* Lê o arquivo *de texto* do mapa e transforma em um mapa matriz para a utilização no jogo */
-void lerMapaDoArquivo(char *nomeArquivo, char mapa[LINHAS][COLUNAS])
+void lerMapaDoArquivo(int nivel, char mapa[LINHAS][COLUNAS], int contadores[], BAU baus[50])
 {
     int i, j;
-    FILE *arq = fopen(nomeArquivo, "r");
+
+    FILE *arq;
+
+    if (nivel == 1) arq = fopen("Mapa01.txt", "r");
+    else if (nivel == 2) arq = fopen("Mapa02.txt", "r");
+    else if (nivel == 3) arq = fopen("Mapa03.txt", "r");
 
     if (arq == NULL)
     {
@@ -31,11 +36,24 @@ void lerMapaDoArquivo(char *nomeArquivo, char mapa[LINHAS][COLUNAS])
             for (j = 0; j < COLUNAS; j++)
             {
                 mapa[i][j] = getc(arq); // Busca cada caractere do arquivo
+                if (mapa[i][j] == 'K')
+                {
+                        baus[contadores[2]].posicao.lin = i;
+                        baus[contadores[2]].posicao.col = j;
+                        baus[contadores[2]].temChave = True;
+                        contadores[2]++; // quantidade de baus no mapa
+                }
+                else if (mapa[i][j] == 'B')
+                {
+                        baus[contadores[2]].posicao.lin = i;
+                        baus[contadores[2]].posicao.col = j;
+                        baus[contadores[2]].temChave = False;
+                        contadores[2]++; // quantidade de baus no mapa
+                } else if (mapa[i][j] == 'E') contadores[4]++;
             }
 
             getc(arq); // Pega o caractere \n após a leitura de cada linha
         }
-
         fclose(arq);
     }
 }

@@ -40,6 +40,11 @@ typedef struct
     BOMBA bombas[3];
 } JOGADOR;
 
-
+//Informações dos baus
+typedef struct
+{
+    POSICAO posicao;
+    bool temChave;
+} BAU ;
 
 #endif

@@ -2,12 +2,6 @@
 habilidade de trabalho em equipe, consistindo na implementação de um jogo na linguagem de programação C.
 O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a biblioteca gráfica RayLib*/
 
-/*Eu consegui adicionar uma lógica para andomizar o movimento dos inimigos mas por algum motivo a função de movimentação não está funcionando.
-eu não consigo ver nenhum erro na minha lógica e preciso de uma juda para resolver isso
-
-o menu está completamente quebrado. Todas as funções funcionam mas qualquer tentativa de dar scanf ou gets faz o jogo crashar então
-por enquanto deixei somente a função de retornar ao jogo*/
-
 /*********** Includes e Defines ***********/
 
 #include <stdio.h>
@@ -24,7 +18,7 @@ por enquanto deixei somente a função de retornar ao jogo*/
 
 // Número máximo de conteúdos
 #define MAX_BOMBAS 3
-#define MAX_CHAVES 3
+#define MAX_CHAVES 5
 #define MAX_INIMIGOS 5
 
 // Dimensões máximas da tela do jogo em px
@@ -49,14 +43,15 @@ void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS]);
 void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador); //cuida do timer de 3 segundos das bombas
 void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA *bomba, JOGADOR *jogador);
-void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[]); //cria um novo jogo
+void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, int contadores[], BAU baus[50]); //cria um novo jogo
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
-void controlarMenu(bool *menuEstaRodando, char mapa[LINHAS][COLUNAS]);
+void controlarMenu(bool *menuEstaRodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, int contadores[], BAU baus[50]);
 POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao);
 bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
 int objetoNaDirecao(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
-void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
-void mudarDirecaoInimigos(POSICAO posInimigos[], clock_t *timer);
+void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int contadores[]);
+void mudarDirecaoInimigos(POSICAO posInimigos[], clock_t *timer, int contadores[]);
+void proximoNivel(int nivel, char mapa[LINHAS][COLUNAS], int contadores[], BAU baus[50], JOGADOR *jogado);
 void perderVida(JOGADOR *jogador);
 
 /************* Main **************/
@@ -64,6 +59,8 @@ int main()
 {
     clock_t timer_inimigos = 1 + clock();
     clock_t timer_direcao = clock();
+
+    int nivel = 1; //qual Mapa0X.txt abrir
 
     bool rodando = true; // Enquanto rodando == True o jogo irá rodar
     bool menuEstaRodando = false;
@@ -74,11 +71,13 @@ int main()
     int contadores[5] = {0, 0, 0, 0, 0};
     /*[0] = paredes indestrutiveis
       [1] = paredes destrutiveis
-      [2] = baus com chaves
-      [3] = baus sem chaves
+      [2] = baus com chaves e sem chaves
+      [3] = chaves
       [4] = inimigos */
 
-    lerMapaDoArquivo("bombermap.txt", mapa);
+    BAU baus[50];
+
+    lerMapaDoArquivo(nivel, mapa, contadores, baus);
 
     // Printa a matriz para verificar se o mapa foi recebido corretamente
     for (int i = 0; i < LINHAS; i++)
@@ -114,6 +113,7 @@ int main()
     // While principal do jogo
     while (rodando)
     {
+
         /****** DESENHO ******/
         BeginDrawing();
         ClearBackground(RAYWHITE); // Desenha o fundo branco
@@ -138,21 +138,24 @@ int main()
         }
         else if (menuEstaRodando)
         {
-            controlarMenu(&menuEstaRodando, mapa);
+            controlarMenu(&menuEstaRodando, mapa, &posJogador, posInimigos, posChaves, &jogador, contadores, baus);
         }
 
         if (IsKeyPressed(KEY_ESCAPE)) rodando = false; // Sair do jogo
         //----------------------------------------------------------------------------------
+
+        /**** MUDAR DE FASE ****/
+        if (jogador.nChaves >= 5) proximoNivel(nivel, mapa, contadores, baus, &jogador);
+
 
         //verificaTimerDasBombas(mapa, bombas, &jogador);
         EndDrawing();
 
         //----------------------------------------------------------------------------------
 
-        if (clock() >= timer_direcao) mudarDirecaoInimigos(posInimigos, &timer_direcao);
-        //if (clock() >= timer_inimigos) moverInimigos(posInimigos, &timer_inimigos, mapa, &jogador);
+        if (clock() >= timer_direcao) mudarDirecaoInimigos(posInimigos, &timer_direcao, contadores);
+        //if (clock() >= timer_inimigos) moverInimigos(posInimigos, &timer_inimigos, mapa, &jogador, contadores);
 
-        // ***** Evitar colocar printf() para rodar com o jogo pq ele diminui a performance **** descomenta só quando for usar pra debugar
         // printf("\nTimer Aleatorio: %ld, Timer Inimigos: %ld, Clock Atual: %ld", timer_direcao, timer_inimigos, clock());
     }
 
@@ -164,11 +167,11 @@ int main()
 /*********** Funções ************/
 
 /* A cada 3 segundos escolhe uma direcao nova aleatoria para cada inimigo*/
-void mudarDirecaoInimigos(POSICAO posInimigos[], clock_t *timer)
+void mudarDirecaoInimigos(POSICAO posInimigos[], clock_t *timer, int contadores[])
 {
     int i, num;
 
-    for (i = 0; i < MAX_INIMIGOS; i++)
+    for (i = 0; i < contadores[4]; i++)
     {
         num = rand() % 4 + 1;
         posInimigos[i].direcao = num;
@@ -178,11 +181,11 @@ void mudarDirecaoInimigos(POSICAO posInimigos[], clock_t *timer)
 }
 
 /* A cada segundo, se possível, move o inimigo na direção determinada*/
-void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLUNAS],JOGADOR *jogador)
+void moverInimigos(POSICAO posInimigos[], clock_t *timer, char mapa[LINHAS][COLUNAS],JOGADOR *jogador,int contadores[])
 {
     int i;
     bool moveu;
-    for (i=0; i < MAX_INIMIGOS; i++)
+    for (i=0; i < contadores[4]; i++)
     {
         int tentativas = 0; //Contador de tentativas para o código não ficar em um loop infinito caso tenha paredes nas 4 direções
         moveu = False;
@@ -382,7 +385,7 @@ void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA *bomba, JOGADOR *jogador)
 }
 
 /* Inicia o jogo do zero */
-void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[])
+void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, int contadores[], BAU baus[50])
 {
     // Reinicia os contadores
     contadores[0] = contadores[1] = contadores[2] = contadores[3] = contadores[4] = 0;
@@ -396,7 +399,7 @@ void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimig
     // Reinicia as bombas
 
     // Lê novamente o arquivo e recria do 0
-    lerMapaDoArquivo("bombermap.txt", mapa);
+    //lerMapaDoArquivo("bombermap.txt", mapa, contadores, baus);
     //criarMapa(mapa, posJogador, posInimigos, posChaves, contadores);
 
     printf("\n\n----- NOVO JOGO INICIADO! -----\n");
@@ -489,12 +492,12 @@ void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
     }
 }
 
-void controlarMenu(bool *menuEstaRodando, char mapa[LINHAS][COLUNAS])
+void controlarMenu(bool *menuEstaRodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador,  int contadores[], BAU baus[50])
 {
     if(IsKeyPressed(KEY_N))
     {
         printf("\nIniciar novo jogo (Implementar)");
-        // novoJogo();
+        //novoJogo(mapa, &posJogador, posInimigos, posChaves, &jogador, contadores, baus);
         *menuEstaRodando = false;
     }
     else if(IsKeyPressed(KEY_C))
@@ -521,6 +524,12 @@ void controlarMenu(bool *menuEstaRodando, char mapa[LINHAS][COLUNAS])
     }
 }
 
+void proximoNivel(int nivel ,char mapa[LINHAS][COLUNAS], int contadores[], BAU baus[50], JOGADOR *jogador){
+    nivel++;
+    jogador->nChaves = 0;
+    /desenharProxNivel();
+    lerMapaDoArquivo(nivel, mapa, contadores, baus);
+}
 
 void perderVida(JOGADOR *jogador)
 {
