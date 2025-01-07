@@ -43,9 +43,9 @@ void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS]);
 void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
 void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador); //cuida do timer de 3 segundos das bombas
 void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA *bomba, JOGADOR *jogador);
-void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, int contadores[], BAU baus[50]); //cria um novo jogo
+void novoJogo(int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int contadores[], BAU baus[50]); //cria um novo jogo
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
-void controlarMenu(bool *menuEstaRodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, int contadores[], BAU baus[50]);
+void controlarMenu(bool *menuEstaRodando, int nivel , char mapa[LINHAS][COLUNAS], JOGADOR *jogador,  int contadores[], BAU baus[50]);
 POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao);
 bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
 int objetoNaDirecao(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
@@ -138,7 +138,7 @@ int main()
         }
         else if (menuEstaRodando)
         {
-            controlarMenu(&menuEstaRodando, mapa, &posJogador, posInimigos, posChaves, &jogador, contadores, baus);
+            controlarMenu(&menuEstaRodando, nivel, mapa, &jogador, contadores, baus);
         }
 
         if (IsKeyPressed(KEY_ESCAPE)) rodando = false; // Sair do jogo
@@ -384,26 +384,6 @@ void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA *bomba, JOGADOR *jogador)
     //desenharExplosao(mapa, jogador);
 }
 
-/* Inicia o jogo do zero */
-void novoJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, int contadores[], BAU baus[50])
-{
-    // Reinicia os contadores
-    contadores[0] = contadores[1] = contadores[2] = contadores[3] = contadores[4] = 0;
-
-    // Reinicia o jogador
-    jogador->nVidas = 3;
-    jogador->nBombas = 3;
-    jogador->pontuacao = 0;
-    jogador->nChaves = 0;
-
-    // Reinicia as bombas
-
-    // Lê novamente o arquivo e recria do 0
-    //lerMapaDoArquivo("bombermap.txt", mapa, contadores, baus);
-    //criarMapa(mapa, posJogador, posInimigos, posChaves, contadores);
-
-    printf("\n\n----- NOVO JOGO INICIADO! -----\n");
-}
 
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
 {
@@ -492,12 +472,11 @@ void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
     }
 }
 
-void controlarMenu(bool *menuEstaRodando, char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador,  int contadores[], BAU baus[50])
+void controlarMenu(bool *menuEstaRodando, int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador,  int contadores[], BAU baus[50])
 {
     if(IsKeyPressed(KEY_N))
     {
-        printf("\nIniciar novo jogo (Implementar)");
-        //novoJogo(mapa, &posJogador, posInimigos, posChaves, &jogador, contadores, baus);
+        novoJogo(nivel, mapa, jogador, contadores, baus);
         *menuEstaRodando = false;
     }
     else if(IsKeyPressed(KEY_C))
@@ -524,10 +503,35 @@ void controlarMenu(bool *menuEstaRodando, char mapa[LINHAS][COLUNAS], POSICAO *p
     }
 }
 
+/* Inicia o jogo do zero */
+void novoJogo(int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int contadores[], BAU baus[50])
+{
+    // Reinicia os contadores
+    contadores[0] = contadores[1] = contadores[2] = contadores[3] = contadores[4] = 0;
+    nivel = 0;
+
+    // Reinicia o jogador
+    jogador->nVidas = 3;
+    jogador->nBombas = 3;
+    jogador->pontuacao = 0;
+    jogador->nChaves = 0;
+
+    // Reinicia as bombas
+    jogador->bombas[0].ativa = false;
+    jogador->bombas[1].ativa = false;
+    jogador->bombas[2].ativa = false;
+
+    // Lê novamente o arquivo e recria do 0
+    lerMapaDoArquivo(nivel, mapa, contadores, baus);
+    //criarMapa(mapa, posJogador, posInimigos, posChaves, contadores);
+
+    printf("\n\n----- NOVO JOGO INICIADO! -----\n");
+}
+
 void proximoNivel(int nivel ,char mapa[LINHAS][COLUNAS], int contadores[], BAU baus[50], JOGADOR *jogador){
     nivel++;
     jogador->nChaves = 0;
-    /desenharProxNivel();
+    //desenharProxNivel();
     lerMapaDoArquivo(nivel, mapa, contadores, baus);
 }
 
@@ -537,7 +541,7 @@ void perderVida(JOGADOR *jogador)
     {
         jogador->nVidas--;
         jogador->pontuacao -= 100;
+        if (jogador->pontuacao < 0) jogador->pontuacao = 0;
     }
     else exit(0);
-
 }

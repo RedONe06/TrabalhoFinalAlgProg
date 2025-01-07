@@ -59,20 +59,12 @@ void lerMapaDoArquivo(int nivel, char mapa[LINHAS][COLUNAS], int contadores[], B
 }
 
 /* Salva o jogo em um arquivo binario */
-void salvarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[])
+void salvarJogo(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, BOMBA bombas[], int contadores[], BAU baus[50])
 {
     int i;
     int lin, col;
 
     printf("\nSalvando o jogo...");
-
-    // Atualiza a posição dos inimigos no mapa
-    for (i = 0; i < contadores[4]; i++)
-    {
-        lin = posInimigos[i].lin / TAM_BLOCO;
-        col = posInimigos[i].col / TAM_BLOCO;
-        mapa[lin][col] = 'E';
-    }
 
     // Atualiza a posiçao do jogador no mapa
     lin = posJogador->lin / TAM_BLOCO;
@@ -90,8 +82,9 @@ void salvarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInim
     else
     {
         // Salva as informações...
+        fwrite(nivel, sizeof(int), 1, save); //... do nivel
         fwrite(jogador, sizeof(int), 4, save); // ... do jogador
-        fwrite(bombas, sizeof(BOMBA), MAX_BOMBAS, save); // ... das bombas
+        fwrite(jogador->bombas, sizeof(BOMBA), MAX_BOMBAS, save); // ... das bombas
 
         // ... do mapa
         for (i = 0; i < LINHAS; i++)
@@ -102,12 +95,12 @@ void salvarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInim
 
         fclose(save);
 
-        printf("  Sucesso!");
+        printf("\n  Sucesso!");
     }
 }
 
 /* Carrega o jogo salvo de um arquivo binário */
-void carregarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posInimigos[], POSICAO posChaves[], JOGADOR *jogador, BOMBA bombas[], int contadores[])
+void carregarJogo(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, BOMBA bombas[], int contadores[], BAU baus[50])
 {
     printf("\nCarregando o jogo...");
 
@@ -123,14 +116,14 @@ void carregarJogo(char mapa[LINHAS][COLUNAS], POSICAO *posJogador, POSICAO posIn
     {
         // Carrega as informações...
         fread(jogador, sizeof(int), 4, arq); // ... do jogador
-        fread(bombas, sizeof(BOMBA), MAX_BOMBAS, arq); // ... das bombas
+        fread(jogador->bombas, sizeof(BOMBA), MAX_BOMBAS, arq); // ... das bombas
         fread(mapa, sizeof(char), TAMANHO_MAPA, arq); // ... do mapa
 
         fclose(arq);
 
-        printf("  Jogo carregado com sucesso!");
+        printf("\n  Jogo carregado com sucesso!");
     }
 
     // Cria o mapa de novo
-    //criarMapa(mapa, posJogador, posInimigos, posChaves, contadores);
+    lerMapaDoArquivo(nivel, mapa, contadores, baus);
 }
