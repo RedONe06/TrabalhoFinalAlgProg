@@ -60,10 +60,6 @@ void desenharBarraStatus(JOGADOR *jogador)
     DrawText(TextFormat("Pontuacao: %d", jogador->pontuacao), LARGURA - 200, 540, 20, BLACK);
 }
 
-void desenharExp(int i, int j){
-DrawRectangle(i, j, TAM_BLOCO, TAM_BLOCO, ORANGE);
-}
-
 void desenharMenu()
 {
     int yTitulo = ALTURA / 4;

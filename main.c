@@ -415,7 +415,6 @@ void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA *bomba, JOGADOR *jogador, i
             break;
 
         }
-        desenharExp(i,j);
         }
     }
 
