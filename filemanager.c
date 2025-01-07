@@ -38,18 +38,19 @@ void lerMapaDoArquivo(int nivel, char mapa[LINHAS][COLUNAS], int contadores[], B
                 mapa[i][j] = getc(arq); // Busca cada caractere do arquivo
                 if (mapa[i][j] == 'K')
                 {
-                        baus[contadores[2]].posicao.lin = i;
-                        baus[contadores[2]].posicao.col = j;
-                        baus[contadores[2]].temChave = True;
-                        contadores[2]++; // quantidade de baus no mapa
+                    baus[contadores[2]].posicao.lin = i;
+                    baus[contadores[2]].posicao.col = j;
+                    baus[contadores[2]].temChave = True;
+                    contadores[2]++; // quantidade de baus no mapa
                 }
                 else if (mapa[i][j] == 'B')
                 {
-                        baus[contadores[2]].posicao.lin = i;
-                        baus[contadores[2]].posicao.col = j;
-                        baus[contadores[2]].temChave = False;
-                        contadores[2]++; // quantidade de baus no mapa
-                } else if (mapa[i][j] == 'E') contadores[4]++;
+                    baus[contadores[2]].posicao.lin = i;
+                    baus[contadores[2]].posicao.col = j;
+                    baus[contadores[2]].temChave = False;
+                    contadores[2]++; // quantidade de baus no mapa
+                }
+                else if (mapa[i][j] == 'E') contadores[4]++;
             }
 
             getc(arq); // Pega o caractere \n após a leitura de cada linha
@@ -59,17 +60,12 @@ void lerMapaDoArquivo(int nivel, char mapa[LINHAS][COLUNAS], int contadores[], B
 }
 
 /* Salva o jogo em um arquivo binario */
-void salvarJogo(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, BOMBA bombas[], int contadores[], BAU baus[50])
+void salvarJogo(int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int contadores[])
 {
     int i;
     int lin, col;
 
     printf("\nSalvando o jogo...");
-
-    // Atualiza a posiçao do jogador no mapa
-    lin = posJogador->lin / TAM_BLOCO;
-    col = posJogador->col / TAM_BLOCO;
-    mapa[lin][col] = 'J';
 
     // Cria um arquivo para salvar o jogo
     FILE *save;
@@ -82,7 +78,7 @@ void salvarJogo(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, BOMBA bombas[], in
     else
     {
         // Salva as informações...
-        fwrite(nivel, sizeof(int), 1, save); //... do nivel
+//        fwrite(nivel, sizeof(int), 1, save); //... do nivel
         fwrite(jogador, sizeof(int), 4, save); // ... do jogador
         fwrite(jogador->bombas, sizeof(BOMBA), MAX_BOMBAS, save); // ... das bombas
 
@@ -100,7 +96,7 @@ void salvarJogo(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, BOMBA bombas[], in
 }
 
 /* Carrega o jogo salvo de um arquivo binário */
-void carregarJogo(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, BOMBA bombas[], int contadores[], BAU baus[50])
+void carregarJogo(int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int contadores[], BAU baus[50])
 {
     printf("\nCarregando o jogo...");
 

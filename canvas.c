@@ -42,6 +42,10 @@ void desenharMapa(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
                 break;
             case 'X':
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BLACK);
+                break;
+            case 'C':
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, GOLD);
+                break;
             default:
                 continue;
             }
@@ -54,6 +58,10 @@ void desenharBarraStatus(JOGADOR *jogador)
     DrawText(TextFormat("Vidas: %d\tBombas: %d", jogador->nVidas, jogador->nBombas), 50, 540, 20, BLACK);
     DrawText(TextFormat("Chaves: %d", jogador->nChaves), LARGURA / 2.2, 540, 20, BLACK);
     DrawText(TextFormat("Pontuacao: %d", jogador->pontuacao), LARGURA - 200, 540, 20, BLACK);
+}
+
+void desenharExp(int i, int j){
+DrawRectangle(i, j, TAM_BLOCO, TAM_BLOCO, ORANGE);
 }
 
 void desenharMenu()

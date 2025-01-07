@@ -40,12 +40,12 @@ O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a 
 void criarInimigo(POSICAO posInimigos[], int lin, int col, int num);
 void criarChave(POSICAO posChaves[], int lin, int col, int num);
 void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS]);
-void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
+void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int contadores[]);
 void timerBombas(BOMBA bombas[], char mapa[LINHAS][COLUNAS], JOGADOR *jogador); //cuida do timer de 3 segundos das bombas
-void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA *bomba, JOGADOR *jogador);
+void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA *bomba, JOGADOR *jogador, int contadores[]);
 void novoJogo(int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int contadores[], BAU baus[50]); //cria um novo jogo
 void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador);
-void controlarMenu(bool *menuEstaRodando, int nivel , char mapa[LINHAS][COLUNAS], JOGADOR *jogador,  int contadores[], BAU baus[50]);
+void controlarMenu(bool *menuEstaRodando, int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador,  int contadores[], BAU baus[50]);
 POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao);
 bool direcaoEstaLivre(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
 int objetoNaDirecao(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direcao);
@@ -128,7 +128,7 @@ int main()
         {
             controlarMovimentacao(mapa, &jogador);
             if (IsKeyPressed(KEY_B)) colocarBomba(&jogador, mapa);
-            verificaTimerDasBombas(mapa, &jogador);
+            verificaTimerDasBombas(mapa, &jogador, contadores);
         }
         //----------------------------------------------------------------------------------
         /**** MENU ****/
@@ -272,22 +272,22 @@ int objetoNaDirecao(char mapa[LINHAS][COLUNAS], POSICAO posicaoAtual, int direca
     case 0: // Baixo
         if (mapa[posicaoAtual.lin + 1][posicaoAtual.col] == ' ') return 1;
         else if (mapa[posicaoAtual.lin + 1][posicaoAtual.col] == 'E') return 2;
-        else if (mapa[posicaoAtual.lin + 1][posicaoAtual.col] == 'K') return 3;
+        else if (mapa[posicaoAtual.lin + 1][posicaoAtual.col] == 'C') return 3;
         break;
     case 1: // Cima
         if (mapa[posicaoAtual.lin - 1][posicaoAtual.col] == ' ') return 1;
         else if (mapa[posicaoAtual.lin - 1][posicaoAtual.col] == 'E') return 2;
-        else if (mapa[posicaoAtual.lin - 1][posicaoAtual.col] == 'K') return 3;
+        else if (mapa[posicaoAtual.lin - 1][posicaoAtual.col] == 'C') return 3;
         break;
     case 2: // Esquerda
         if (mapa[posicaoAtual.lin][posicaoAtual.col - 1] == ' ') return 1;
         else if (mapa[posicaoAtual.lin][posicaoAtual.col - 1] == 'E') return 2;
-        else if (mapa[posicaoAtual.lin ][posicaoAtual.col - 1] == 'K') return 3;
+        else if (mapa[posicaoAtual.lin ][posicaoAtual.col - 1] == 'C') return 3;
         break;
     default: // Direita
         if (mapa[posicaoAtual.lin][posicaoAtual.col + 1] == ' ') return 1;
         else if (mapa[posicaoAtual.lin][posicaoAtual.col + 1] == 'E') return 2;
-        else if (mapa[posicaoAtual.lin ][posicaoAtual.col + 1] == 'K') return 3;
+        else if (mapa[posicaoAtual.lin ][posicaoAtual.col + 1] == 'C') return 3;
     }
 
     return 0;
@@ -359,7 +359,7 @@ void colocarBomba(JOGADOR *jogador, char mapa[LINHAS][COLUNAS])
     jogador->nBombas--; // Decrementa o número de bombas do arsenal
 }
 
-void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
+void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int contadores[])
 {
     for (int i = 0; i < MAX_BOMBAS; i++)
     {
@@ -370,15 +370,55 @@ void verificaTimerDasBombas(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
         if ((int)intervaloEmSegundos > 3)
         {
             // Se já se passaram 3 segundos do tempo de início da bomba, explodir ela
-            explodirBomba(mapa, &jogador->bombas[i], jogador);
+            explodirBomba(mapa, &jogador->bombas[i], jogador, contadores);
         }
     }
 }
 
-void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA *bomba, JOGADOR *jogador)
+void explodirBomba(char mapa[LINHAS][COLUNAS], BOMBA *bomba, JOGADOR *jogador, int contadores[])
 {
+    int i,j;
     // Limpa o espaço da bomba e marca como um espaço vazio
     mapa[bomba->posicao.lin][bomba->posicao.col] = ' ';
+    for (i=-2; i<3; i++)
+    {
+        for (j=-2; j<3; j++)
+        {
+        switch(mapa[bomba->posicao.lin + i][bomba->posicao.col + j])
+        {
+        case 'D':
+            mapa[bomba->posicao.lin + i][bomba->posicao.col + j] = ' ';
+            jogador->pontuacao += 10;
+            break;
+        case 'B':
+            mapa[bomba->posicao.lin + i][bomba->posicao.col + j] = ' ';
+            contadores[2]--;
+            jogador->pontuacao += 10;
+            break;
+        case 'K':
+            mapa[bomba->posicao.lin + i][bomba->posicao.col + j] = 'C';
+            contadores[2]--;
+            jogador->pontuacao += 10;
+            break;
+        case 'E':
+            mapa[bomba->posicao.lin + i][bomba->posicao.col + j] = ' ';
+            jogador->pontuacao += 20;
+            contadores[4]--;
+            break;
+        case 'J':
+            perderVida(jogador);
+            break;
+        case 'X':
+            //explodirBomba();
+            break;
+        default:
+            break;
+
+        }
+        desenharExp(i,j);
+        }
+    }
+
     bomba->ativa = false;
     jogador->nBombas++;
     //desenharExplosao(mapa, jogador);
@@ -403,6 +443,7 @@ void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
             mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
             mapa[jogador->posicao.lin ][jogador->posicao.col +1] = 'J';
             jogador->nChaves++;
+            jogador->pontuacao += 50;
             jogador->direcao = 3;
             break;
         }
@@ -424,6 +465,7 @@ void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
             mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
             mapa[jogador->posicao.lin][jogador->posicao.col - 1] = 'J';
             jogador->nChaves++;
+            jogador->pontuacao += 50;
             jogador->direcao = 2;
             break;
         }
@@ -445,6 +487,7 @@ void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
             mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
             mapa[jogador->posicao.lin - 1][jogador->posicao.col] = 'J';
             jogador->nChaves++;
+            jogador->pontuacao += 50;
             jogador->direcao = 1;
             break;
         }
@@ -466,6 +509,7 @@ void controlarMovimentacao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
             mapa[jogador->posicao.lin][jogador->posicao.col] = ' ';
             mapa[jogador->posicao.lin + 1][jogador->posicao.col] = 'J';
             jogador->nChaves++;
+            jogador->pontuacao += 50;
             jogador->direcao = 0;
             break;
         }
@@ -482,13 +526,13 @@ void controlarMenu(bool *menuEstaRodando, int nivel, char mapa[LINHAS][COLUNAS],
     else if(IsKeyPressed(KEY_C))
     {
         printf("\nCarregar jogo (Implementar)");
-        // carregarJogo();
+        // carregarJogo(nivel, mapa, jogador, contadores, baus);
         *menuEstaRodando = false;
     }
     else if(IsKeyPressed(KEY_S))
     {
         printf("\nSalvar jogo (Implementar)");
-        // salvarJogo();
+        // salvarJogo(nivel, mapa, jogador, contadores);
         *menuEstaRodando = false;
     }
     else if(IsKeyPressed(KEY_Q))
@@ -528,7 +572,8 @@ void novoJogo(int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int conta
     printf("\n\n----- NOVO JOGO INICIADO! -----\n");
 }
 
-void proximoNivel(int nivel ,char mapa[LINHAS][COLUNAS], int contadores[], BAU baus[50], JOGADOR *jogador){
+void proximoNivel(int nivel,char mapa[LINHAS][COLUNAS], int contadores[], BAU baus[50], JOGADOR *jogador)
+{
     nivel++;
     jogador->nChaves = 0;
     //desenharProxNivel();
@@ -543,5 +588,9 @@ void perderVida(JOGADOR *jogador)
         jogador->pontuacao -= 100;
         if (jogador->pontuacao < 0) jogador->pontuacao = 0;
     }
-    else exit(0);
+    else
+    {
+        CloseWindow();
+        printf("\n\n\t\t- Game over -");
+    }
 }
