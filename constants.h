@@ -13,6 +13,7 @@
 #define MAX_BOMBAS 3
 #define MAX_CHAVES 5
 #define MAX_INIMIGOS 5
+#define MAX_MAPAS 20
 
 // Dimensões máximas da tela do jogo em px
 #define ALTURA 600

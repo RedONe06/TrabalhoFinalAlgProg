@@ -32,14 +32,16 @@ TODO ==========================
 
 int main()
 {
-    int nivel = 1;
     bool rodando = true; // Enquanto rodando == True o jogo irá rodar
     bool menuEstaRodando = false;
-
     MAPA mapa = iniciarMapa();
     JOGADOR jogador = iniciarJogador();
 
-    lerMapaDoArquivo(nivel, &mapa);
+    int indexMapas[MAX_MAPAS];
+    int niveisDisponiveis = 0;
+    int niveisPassados = 0;
+    acharMapasDisponiveis(indexMapas, &niveisDisponiveis);
+    lerMapaDoArquivo(indexMapas[0], &mapa);
 
     // Printa a matriz para verificar se o mapa foi recebido corretamente
     for (int i = 0; i < LINHAS; i++)
@@ -65,8 +67,14 @@ int main()
         ClearBackground(RAYWHITE); // Desenha o fundo branco
 
         desenharBarraStatus(&jogador);
-        if (!menuEstaRodando) desenharMapa(&mapa, &jogador);
-        else desenharMenu();
+        if (!menuEstaRodando)
+        {
+            desenharMapa(&mapa, &jogador);
+        }
+        else
+        {
+            desenharMenu();
+        }
 
         /**** PERSONAGEM ****/
         //----------------------------------------------------------------------------------
@@ -85,14 +93,11 @@ int main()
         }
         else if (menuEstaRodando)
         {
-            controlarMenu(&menuEstaRodando, nivel, &mapa, &jogador);
+            controlarMenu(&menuEstaRodando, &mapa, &jogador);
         }
 
         if (IsKeyPressed(KEY_ESCAPE)) rodando = false; // Sair do jogo
         //----------------------------------------------------------------------------------
-
-        /**** MUDAR DE FASE ****/
-        if (jogador.nChaves >= 5) proximoNivel(nivel, &mapa, &jogador);
 
         EndDrawing();
 

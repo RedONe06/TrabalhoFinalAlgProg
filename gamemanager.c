@@ -37,7 +37,7 @@ void novoJogo(int nivel, MAPA *mapa, JOGADOR *jogador)
 }
 
 
-void controlarMenu(bool *menuEstaRodando, int nivel, MAPA *mapa, JOGADOR *jogador)
+void controlarMenu(bool *menuEstaRodando, MAPA *mapa, JOGADOR *jogador)
 {
     if(IsKeyPressed(KEY_N))
     {

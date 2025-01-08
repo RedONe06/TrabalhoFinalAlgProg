@@ -1,18 +1,14 @@
 #include "structs.h"
 #include "constants.h"
+#include <stdio.h>
 
 /* Lê o arquivo *de texto* do mapa e transforma em um mapa matriz para a utilização no jogo */
-void lerMapaDoArquivo(int nivel, MAPA *mapa)
+void lerMapaDoArquivo(int idMapa, MAPA *mapa)
 {
-    int i, j;
-
     FILE *arq;
-    arq = fopen("bombermap.txt", "r");
-
-    /*
-    if (nivel == 1) arq = fopen("Mapa01.txt", "r");
-    else if (nivel == 2) arq = fopen("Mapa02.txt", "r");
-    else if (nivel == 3) arq = fopen("Mapa03.txt", "r");*/
+    char nomeArquivo[50];
+    sprintf(nomeArquivo, "mapa%d.txt", idMapa);
+    arq = fopen(nomeArquivo, "r");
 
     if (arq == NULL)
     {
@@ -21,12 +17,12 @@ void lerMapaDoArquivo(int nivel, MAPA *mapa)
     }
     else
     {
-        for (i = 0; i < LINHAS; i++)
+        for (int i = 0; i < LINHAS; i++)
         {
-            for (j = 0; j < COLUNAS; j++)
+            for (int j = 0; j < COLUNAS; j++)
             {
                 mapa->matriz[i][j] = getc(arq); // Busca cada caractere do arquivo
-                if(mapa->matriz[i][j] == 'E') // Mapeia posição inicial dos inimigos
+                if (mapa->matriz[i][j] == 'E') // Mapeia posição inicial dos inimigos
                 {
                     mapa->inimigos[mapa->nInimigos].posicao.lin = i;
                     mapa->inimigos[mapa->nInimigos].posicao.col = j;
@@ -104,4 +100,26 @@ void carregarJogo(int nivel, MAPA *mapa, JOGADOR *jogador)
 
     // Cria o mapa de novo
     lerMapaDoArquivo(nivel, mapa);
+}
+
+void acharMapasDisponiveis(int idMapas[MAX_MAPAS], int *nMapas)
+{
+    for(int i = 1; i <= MAX_MAPAS; i++)
+    {
+        FILE *arq;
+        char nomeArquivo[50];
+        sprintf(nomeArquivo, "mapa%d.txt", i);
+        arq = fopen(nomeArquivo, "r");
+
+        if (arq == NULL)
+        {
+            continue;
+        }
+        else
+        {
+            fclose(arq);
+            idMapas[*nMapas] = i;
+            nMapas++;
+        }
+    }
 }

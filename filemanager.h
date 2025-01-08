@@ -7,5 +7,6 @@
 void lerMapaDoArquivo(int nivel, MAPA *mapa);
 void salvarJogo(int nivel, MAPA *mapa, JOGADOR *jogador);
 void carregarJogo(int nivel, MAPA *mapa, JOGADOR *jogador);
+void acharMapasDisponiveis(int idMapas[MAX_MAPAS], int *nMapas);
 
 #endif

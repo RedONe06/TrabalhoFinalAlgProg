@@ -83,11 +83,6 @@ void desenharMenu()
 
 void desenharProxNivel()
 {
-    /*clock_t tempo = clock() + CLOCKS_PER_SEC * 4;
-    while (tempo > clock()){
-        DrawText("AVANCANDO PARA ", LARGURA / 5 , ALTURA / 2 - 85 , 80, BLACK);
-        DrawText("A PRÓXIMA FASE", LARGURA / 5 , ALTURA / 2 , 80, BLACK);
-    }*/
 }
 
 void desenharExplosao(MAPA *mapa, JOGADOR *jogador, POSICAO posBomba)
