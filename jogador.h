@@ -5,5 +5,7 @@
 
 void controlarMovimentacao(MAPA *mapa, JOGADOR *jogador);
 void perderVida(JOGADOR *jogador);
+JOGADOR iniciarJogador();
+void matarJogador();
 
 #endif // JOGADOR_H

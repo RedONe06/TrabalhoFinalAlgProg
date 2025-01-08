@@ -46,3 +46,21 @@ POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao)
 
     return novaPosicao;
 }
+
+MAPA iniciarMapa()
+{
+    MAPA mapa;
+    mapa.nBaus = 0;
+    mapa.nInimigos = 0;
+    mapa.nParedesDestrutiveis = 0;
+    mapa.nParedesIndestrutives = 0;
+    return mapa;
+}
+
+void matarInimigo(){
+    printf("\nmatarInimigo - Implementar");
+}
+
+void quebrarBau(MAPA *mapa){
+    printf("\nquebrarBau() - Implementar");
+}

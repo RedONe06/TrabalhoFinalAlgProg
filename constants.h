@@ -23,7 +23,7 @@
 #define TAMANHO_MAPA 1500 // Total de blocos 20pxX20px no mapa (25 * 60)
 
 // Outras definições
-#define ALCANCE_BLOCOS_BOMBA 3
+#define ALCANCE_BLOCOS_BOMBA 2
 
 // Quantidade de linhas e colunas no mapa
 #define LINHAS 25

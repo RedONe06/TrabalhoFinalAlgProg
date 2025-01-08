@@ -1,6 +1,7 @@
 #include "constants.h"
 #include "structs.h"
 #include "mapa.h"
+#include "canvas.h"
 
 void explodirBomba(MAPA *mapa, BOMBA *bomba, JOGADOR *jogador)
 {
@@ -8,47 +9,8 @@ void explodirBomba(MAPA *mapa, BOMBA *bomba, JOGADOR *jogador)
     mapa->matriz[bomba->posicao.lin][bomba->posicao.col] = ' ';
     bomba->ativa = false;
     jogador->nBombas++;
-    /*
-    int i,j;
 
-    for (i=-2; i<3; i++)
-    {
-        for (j=-2; j<3; j++)
-        {
-        switch(mapa->matriz[bomba->posicao.lin + i][bomba->posicao.col + j])
-        {
-        case 'D':
-            mapa->matriz[bomba->posicao.lin + i][bomba->posicao.col + j] = ' ';
-            jogador->pontuacao += 10;
-            break;
-        case 'B':
-            mapa->mapa[bomba->posicao.lin + i][bomba->posicao.col + j] = ' ';
-            jogador->pontuacao += 10;
-            break;
-        case 'K':
-            mapa[bomba->posicao.lin + i][bomba->posicao.col + j] = 'C';
-            contadores[2]--;
-            jogador->pontuacao += 10;
-            break;
-        case 'E':
-            mapa[bomba->posicao.lin + i][bomba->posicao.col + j] = ' ';
-            jogador->pontuacao += 20;
-            contadores[4]--;
-            break;
-        case 'J':
-            perderVida(jogador);
-            break;
-        case 'X':
-            //explodirBomba();
-            break;
-        default:
-            break;
-
-        }
-        }
-    }
-
-    //desenharExplosao(mapa, jogador);*/
+    desenharExplosao(mapa, jogador, bomba->posicao);
 }
 
 void verificaTimerDasBombas(MAPA *mapa, JOGADOR *jogador)

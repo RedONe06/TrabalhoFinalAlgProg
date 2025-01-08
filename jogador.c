@@ -45,3 +45,20 @@ void perderVida(JOGADOR *jogador)
         printf("\n\n\t\t- Game over -");
     }
 }
+
+JOGADOR iniciarJogador()
+{
+    JOGADOR jogador;
+    jogador.nVidas = 3;
+    jogador.nBombas = 3;
+    jogador.pontuacao = 0;
+    jogador.nChaves = 0;
+    jogador.bombas[0].ativa = false;
+    jogador.bombas[1].ativa = false;
+    jogador.bombas[2].ativa = false;
+    return jogador;
+}
+
+void matarJogador(){
+    printf("\nmatarJogador() - Implementar");
+}

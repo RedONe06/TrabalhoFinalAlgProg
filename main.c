@@ -19,26 +19,24 @@ O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a 
 #include "jogador.h"
 #include "gamemanager.h"
 
+/*
+TODO ==========================
+- Explosão de bombas
+- Inimigo andar
+- Pontuação
+- Níveis
+- Novo jogo, salvar, carregar
+- A bomba não explode outras bombas
+*/
+
 int main()
 {
     int nivel = 1;
     bool rodando = true; // Enquanto rodando == True o jogo irá rodar
     bool menuEstaRodando = false;
 
-    MAPA mapa;
-    mapa.nBaus = 0;
-    mapa.nInimigos = 0;
-    mapa.nParedesDestrutiveis = 0;
-    mapa.nParedesIndestrutives = 0;
-
-    JOGADOR jogador;
-    jogador.nVidas = 3;
-    jogador.nBombas = 3;
-    jogador.pontuacao = 0;
-    jogador.nChaves = 0;
-    jogador.bombas[0].ativa = false;
-    jogador.bombas[1].ativa = false;
-    jogador.bombas[2].ativa = false;
+    MAPA mapa = iniciarMapa();
+    JOGADOR jogador = iniciarJogador();
 
     lerMapaDoArquivo(nivel, &mapa);
 

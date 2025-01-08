@@ -2,6 +2,9 @@
 #include "canvas.h"
 #include "raylib.h"
 #include "constants.h"
+#include "bau.h"
+#include "mapa.h"
+#include "jogador.h"
 
 void desenharMapa(MAPA *mapa, JOGADOR *jogador)
 {
@@ -31,11 +34,19 @@ void desenharMapa(MAPA *mapa, JOGADOR *jogador)
             case 'E': // Inimigo
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, RED);
                 break;
-            case 'X':
+            case 'X': // Bomba
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BLACK);
                 break;
-            case 'C':
-                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, GOLD);
+            case '1': // Segundo 1 da explosão
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, RED);
+                mapa->matriz[i][j] = '2';
+                break;
+            case '2': // Segundo 2 da explosão
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, RED);
+                mapa->matriz[i][j] = '3';
+                break;
+            case '3': // Segundo 3 da explosão
+                mapa->matriz[i][j] = ' ';
                 break;
             default:
                 continue;
@@ -76,21 +87,52 @@ void desenharProxNivel()
 
 void desenharExplosao(MAPA *mapa, JOGADOR *jogador, POSICAO posBomba)
 {
-    /*
-    for(int i = 0; i < 3; i++)
+    desenharExplosaoDirecao(mapa, jogador, posBomba, 0); // Cima
+    desenharExplosaoDirecao(mapa, jogador, posBomba, 1); // Baixo
+    desenharExplosaoDirecao(mapa, jogador, posBomba, 2); // Esquerda
+    desenharExplosaoDirecao(mapa, jogador, posBomba, 3); // Direita
+}
+
+void desenharExplosaoDirecao(MAPA *mapa, JOGADOR *jogador, POSICAO posBomba, int direcao)
+{
+    for (int i = 0; i < ALCANCE_BLOCOS_BOMBA; i++) // Para cima
     {
-        POSICAO proximaPosicao = acharProximaPosicao(posBomba, 0);
-        char conteudo = mapa[proximaPosicao.lin][proximaPosicao.col];
-        if (conteudo == 'J')
+        POSICAO proximaPosicao = acharProximaPosicao(posBomba, direcao);
+        char conteudo = mapa->matriz[proximaPosicao.lin][proximaPosicao.col];
+        if (conteudo == 'J') // Jogador
         {
-            printf("\nMatar jogador");
+            matarJogador();
+            // Remove o jogador do mapa e mostra a explosão
+            // mapa->matriz[proximaPosicao.lin][proximaPosicao.col] = '1';
             break;
         }
-        else if(conteudo == 'W') {}
-        else if(conteudo == 'D') {}
-        else if(conteudo == 'B') {}
-        else if(conteudo == 'K') {}
-        else if(conteudo == 'E') {}
-        else if(conteudo == 'X') {}
-    }*/
+        else if(conteudo == 'W')   // Parede indestrutível
+        {
+            break;
+        }
+        else if(conteudo == 'D')   // Parede destrutivel
+        {
+            mapa->matriz[proximaPosicao.lin][proximaPosicao.col] = '1';
+        }
+        else if(conteudo == 'B')   // Baú
+        {
+            quebrarBau(mapa);
+            break;
+        }
+        else if(conteudo == 'K')   // Chave
+        {
+            continue;
+        }
+        else if(conteudo == 'E')   // Inimigo
+        {
+            matarInimigo();
+            mapa->matriz[proximaPosicao.lin][proximaPosicao.col] = '1';
+        }
+        else if(conteudo == 'X')   // Bomba
+        {
+            break;
+        } else {
+            mapa->matriz[proximaPosicao.lin][proximaPosicao.col] = '1';
+        }
+    }
 }
