@@ -6,6 +6,7 @@
 #include "gamemanager.h"
 #include "mapa.h"
 #include "jogador.h"
+#include "inimigo.h"
 
 void desenharMapa(MAPA *mapa, JOGADOR *jogador)
 {
@@ -21,16 +22,19 @@ void desenharMapa(MAPA *mapa, JOGADOR *jogador)
                 jogador->posicao.col = j;
                 break;
             case 'W': // Parede indestrutivel
-                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, SKYBLUE);
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, DARKGRAY);
                 break;
             case 'D': // Parede destrutivel
-                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BROWN);
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, GRAY);
                 break;
             case 'B': // Baú
-                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BLUE);
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BROWN);
                 break;
             case 'K': // Baú com chave
-                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BLUE);
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BROWN);
+                break;
+            case 'C': // Chave
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, GOLD);
                 break;
             case 'E': // Inimigo
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, RED);
@@ -39,11 +43,11 @@ void desenharMapa(MAPA *mapa, JOGADOR *jogador)
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BLACK);
                 break;
             case '1': // Contador de explosão
-                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, RED);
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, ORANGE);
                 mapa->matriz[i][j] = '2';
                 break;
             case '2':
-                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, RED);
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, ORANGE);
                 mapa->matriz[i][j] = '3';
                 break;
             case '3':
@@ -107,29 +111,38 @@ void desenharExplosaoDirecao(MAPA *mapa, JOGADOR *jogador, POSICAO posBomba, int
             // mapa->matriz[proximaPosicao.lin][proximaPosicao.col] = '1';
             break;
         }
-        else if(conteudo == 'W')   // Parede indestrutível
+        else if (conteudo == 'W')   // Parede indestrutível
         {
             break;
         }
-        else if(conteudo == 'D')   // Parede destrutivel
+        else if (conteudo == 'D')   // Parede destrutivel
         {
             mapa->matriz[proximaPosicao.lin][proximaPosicao.col] = '1';
+            jogador->pontuacao += 10;
         }
-        else if(conteudo == 'B')   // Baú
+        else if (conteudo == 'B')   // Baú
         {
-            quebrarBau(mapa);
+            mapa->matriz[proximaPosicao.lin][proximaPosicao.col] = '1';
+            jogador->pontuacao += 10;
             break;
         }
-        else if(conteudo == 'K')   // Chave
+        else if (conteudo == 'K')
+        {
+            mapa->matriz[proximaPosicao.lin][proximaPosicao.col] = 'C';
+            jogador->pontuacao += 10;
+            break;
+        }
+        else if (conteudo == 'C')   // Chave
         {
             continue;
         }
-        else if(conteudo == 'E')   // Inimigo
+        else if (conteudo == 'E')   // Inimigo
         {
-            matarInimigo();
+            matarInimigo(mapa, proximaPosicao);
             mapa->matriz[proximaPosicao.lin][proximaPosicao.col] = '1';
+            jogador->pontuacao += 20;
         }
-        else if(conteudo == 'X')   // Bomba
+        else if (conteudo == 'X')   // Bomba
         {
             break;
         }

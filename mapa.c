@@ -24,6 +24,26 @@ bool direcaoEstaLivre(MAPA *mapa, POSICAO posicaoAtual, int direcao)
     return false;
 }
 
+bool direcaoTemChave(MAPA *mapa, POSICAO posicaoAtual, int direcao)
+{
+    switch(direcao)
+    {
+    case 0: // Baixo
+        if (mapa->matriz[posicaoAtual.lin + 1][posicaoAtual.col] == 'C') return true;
+        break;
+    case 1: // Cima
+        if (mapa->matriz[posicaoAtual.lin - 1][posicaoAtual.col] == 'C') return true;
+        break;
+    case 2: // Esquerda
+        if (mapa->matriz[posicaoAtual.lin][posicaoAtual.col - 1] == 'C') return true;
+        break;
+    default: // Direita
+        if (mapa->matriz[posicaoAtual.lin][posicaoAtual.col + 1] == 'C') return true;
+    }
+
+    return false;
+}
+
 POSICAO acharProximaPosicao(POSICAO posicaoAtual, int direcao)
 {
     POSICAO novaPosicao;
@@ -63,10 +83,6 @@ MAPA iniciarMapa()
     return mapa;
 }
 
-void matarInimigo()
-{
-    printf("\nmatarInimigo - Implementar");
-}
 
 void quebrarBau(MAPA *mapa)
 {

@@ -51,7 +51,6 @@ void moverInimigo(MAPA *mapa, INIMIGO *inimigo)
     }
 }
 
-
 void moverInimigos(MAPA *mapa)
 {
     for(int i = 0; i < mapa->nInimigos; i++)
@@ -70,6 +69,20 @@ void verificaTimerDosInimigos(MAPA *mapa)
         moverInimigos(mapa);
         mapa->tempoInicio = time(NULL);
     }
+}
+
+void matarInimigo(MAPA *mapa, POSICAO posicao)
+{
+    for(int i = 0; i < mapa->nInimigos; i++)
+    {
+        if(mapa->inimigos[i].posicao.lin == posicao.lin && mapa->inimigos[i].posicao.lin == posicao.col)
+        {
+            mapa->inimigos[i].vivo = false;
+            break;
+        }
+    }
+
+    mapa->nInimigos--;
 }
 
 
