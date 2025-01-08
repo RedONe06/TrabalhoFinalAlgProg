@@ -7,10 +7,12 @@ void lerMapaDoArquivo(int nivel, MAPA *mapa)
     int i, j;
 
     FILE *arq;
+    arq = fopen("bombermap.txt", "r");
 
+    /*
     if (nivel == 1) arq = fopen("Mapa01.txt", "r");
     else if (nivel == 2) arq = fopen("Mapa02.txt", "r");
-    else if (nivel == 3) arq = fopen("Mapa03.txt", "r");
+    else if (nivel == 3) arq = fopen("Mapa03.txt", "r");*/
 
     if (arq == NULL)
     {
