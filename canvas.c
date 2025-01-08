@@ -1,26 +1,15 @@
 #include <stdio.h>
 #include "canvas.h"
 #include "raylib.h"
+#include "constants.h"
 
-#define TAM_BLOCO 20 // Tamanho de cada bloco
-#define TAMANHO_MAPA 1500 // Total de blocos 20pxX20px no mapa (25 * 60)
-
-// Dimensões máximas da tela do jogo em px
-#define ALTURA 600
-#define LARGURA 1200
-
-// Número máximo de conteúdos
-#define MAX_BOMBAS 3
-#define MAX_CHAVES 3
-#define MAX_INIMIGOS 5
-
-void desenharMapa(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
+void desenharMapa(MAPA *mapa, JOGADOR *jogador)
 {
     for (int i = 0; i < LINHAS; i++)
     {
         for (int j = 0; j < COLUNAS; j++)
         {
-            switch (mapa[i][j])
+            switch (mapa->matriz[i][j])
             {
             case 'J': // Jogador
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, GREEN);
@@ -34,6 +23,8 @@ void desenharMapa(char mapa[LINHAS][COLUNAS], JOGADOR *jogador)
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BROWN);
                 break;
             case 'B': // Baú
+                DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BLUE);
+                break;
             case 'K': // Baú com chave
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BLUE);
                 break;
@@ -76,14 +67,14 @@ void desenharMenu()
 
 void desenharProxNivel()
 {
-    clock_t tempo = clock() + CLOCKS_PER_SEC * 4;
+    /*clock_t tempo = clock() + CLOCKS_PER_SEC * 4;
     while (tempo > clock()){
         DrawText("AVANCANDO PARA ", LARGURA / 5 , ALTURA / 2 - 85 , 80, BLACK);
         DrawText("A PRÓXIMA FASE", LARGURA / 5 , ALTURA / 2 , 80, BLACK);
-    }
+    }*/
 }
 
-void desenharExplosao(char mapa[LINHAS][COLUNAS], JOGADOR *jogador, POSICAO posBomba)
+void desenharExplosao(MAPA *mapa, JOGADOR *jogador, POSICAO posBomba)
 {
     /*
     for(int i = 0; i < 3; i++)

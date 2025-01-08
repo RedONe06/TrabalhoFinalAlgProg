@@ -1,20 +1,8 @@
 #include "structs.h"
-
-// Quantidade de linhas e colunas no mapa
-#define LINHAS 25
-#define COLUNAS 60
-
-// Resoluções em px
-#define TAM_BLOCO 20 // Tamanho de cada bloco
-#define TAMANHO_MAPA 1500 // Total de blocos 20pxX20px no mapa (25 * 60)
-
-// Número máximo de conteúdos
-#define MAX_BOMBAS 3
-#define MAX_CHAVES 3
-#define MAX_INIMIGOS 5
+#include "constants.h"
 
 /* Lê o arquivo *de texto* do mapa e transforma em um mapa matriz para a utilização no jogo */
-void lerMapaDoArquivo(int nivel, char mapa[LINHAS][COLUNAS], int contadores[], BAU baus[50])
+void lerMapaDoArquivo(int nivel, MAPA *mapa)
 {
     int i, j;
 
@@ -31,26 +19,11 @@ void lerMapaDoArquivo(int nivel, char mapa[LINHAS][COLUNAS], int contadores[], B
     }
     else
     {
-        for (i = 0; i < LINHAS; i++)
+       for (i = 0; i < LINHAS; i++)
         {
             for (j = 0; j < COLUNAS; j++)
             {
-                mapa[i][j] = getc(arq); // Busca cada caractere do arquivo
-                if (mapa[i][j] == 'K')
-                {
-                    baus[contadores[2]].posicao.lin = i;
-                    baus[contadores[2]].posicao.col = j;
-                    baus[contadores[2]].temChave = True;
-                    contadores[2]++; // quantidade de baus no mapa
-                }
-                else if (mapa[i][j] == 'B')
-                {
-                    baus[contadores[2]].posicao.lin = i;
-                    baus[contadores[2]].posicao.col = j;
-                    baus[contadores[2]].temChave = False;
-                    contadores[2]++; // quantidade de baus no mapa
-                }
-                else if (mapa[i][j] == 'E') contadores[4]++;
+                mapa->matriz[i][j] = getc(arq); // Busca cada caractere do arquivo
             }
 
             getc(arq); // Pega o caractere \n após a leitura de cada linha
@@ -96,7 +69,7 @@ void salvarJogo(int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int con
 }
 
 /* Carrega o jogo salvo de um arquivo binário */
-void carregarJogo(int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int contadores[], BAU baus[50])
+void carregarJogo(int nivel, MAPA *mapa, JOGADOR *jogador)
 {
     printf("\nCarregando o jogo...");
 
@@ -121,5 +94,5 @@ void carregarJogo(int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int c
     }
 
     // Cria o mapa de novo
-    lerMapaDoArquivo(nivel, mapa, contadores, baus);
+    lerMapaDoArquivo(nivel, mapa);
 }

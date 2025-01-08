@@ -7,10 +7,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdbool.h>
-
-// Definição de boolean
-#define True 1
-#define False 0
+#include "constants.h"
 
 // Definição de posição genérica no mapa linha e coluna
 typedef struct
@@ -28,6 +25,28 @@ typedef struct
     POSICAO posicao;
 } BOMBA;
 
+//Informações dos baus
+typedef struct
+{
+    POSICAO posicao;
+    bool temChave;
+} BAU;
+
+typedef struct{
+    POSICAO posicao;
+} INIMIGO;
+
+typedef struct
+{
+    char matriz[LINHAS][COLUNAS];
+    BAU baus[50];
+    int nBaus;
+    INIMIGO inimigos[MAX_INIMIGOS];
+    int nInimigos;
+    int nParedesDestrutiveis;
+    int nParedesIndestrutives;
+} MAPA;
+
 // Informações do jogador
 typedef struct
 {
@@ -39,12 +58,5 @@ typedef struct
     int direcao; // 0 = Para cima, 1 = Para baixo, 2 = Para esquerda, 3 = Para direita
     BOMBA bombas[3];
 } JOGADOR;
-
-//Informações dos baus
-typedef struct
-{
-    POSICAO posicao;
-    bool temChave;
-} BAU ;
 
 #endif
