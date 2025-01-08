@@ -1,6 +1,7 @@
 #include "constants.h"
 #include "structs.h"
 #include "mapa.h"
+#include "gamemanager.h"
 #include "canvas.h"
 
 void explodirBomba(MAPA *mapa, BOMBA *bomba, JOGADOR *jogador)
@@ -19,11 +20,8 @@ void verificaTimerDasBombas(MAPA *mapa, JOGADOR *jogador)
     {
         if (jogador->bombas[i].ativa == false) continue;
 
-        double intervaloEmSegundos = difftime(time(NULL), jogador->bombas[i].tempoInicio)/10;
-        intervaloEmSegundos = (intervaloEmSegundos - floor(intervaloEmSegundos)) * 10;
-        if ((int)intervaloEmSegundos > 3)
+        if (jaPassouSegundos(jogador->bombas[i].tempoInicio, 3))
         {
-            // Se já se passaram 3 segundos do tempo de início da bomba, explodir ela
             explodirBomba(mapa, &jogador->bombas[i], jogador);
         }
     }

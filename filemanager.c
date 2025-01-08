@@ -21,15 +21,22 @@ void lerMapaDoArquivo(int nivel, MAPA *mapa)
     }
     else
     {
-       for (i = 0; i < LINHAS; i++)
+        for (i = 0; i < LINHAS; i++)
         {
             for (j = 0; j < COLUNAS; j++)
             {
                 mapa->matriz[i][j] = getc(arq); // Busca cada caractere do arquivo
+                if(mapa->matriz[i][j] == 'E') // Mapeia posição inicial dos inimigos
+                {
+                    mapa->inimigos[mapa->nInimigos].posicao.lin = i;
+                    mapa->inimigos[mapa->nInimigos].posicao.col = j;
+                    mapa->nInimigos++;
+                }
             }
 
             getc(arq); // Pega o caractere \n após a leitura de cada linha
         }
+
         fclose(arq);
     }
 }

@@ -1,5 +1,8 @@
 #include "structs.h"
 #include "constants.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 bool direcaoEstaLivre(MAPA *mapa, POSICAO posicaoAtual, int direcao)
 {
@@ -52,15 +55,22 @@ MAPA iniciarMapa()
     MAPA mapa;
     mapa.nBaus = 0;
     mapa.nInimigos = 0;
-    mapa.nParedesDestrutiveis = 0;
-    mapa.nParedesIndestrutives = 0;
+    mapa.inimigos[0].vivo = 1;
+    mapa.inimigos[1].vivo = 1;
+    mapa.inimigos[2].vivo = 1;
+    mapa.inimigos[3].vivo = 1;
+    mapa.inimigos[4].vivo = 1;
     return mapa;
 }
 
-void matarInimigo(){
+void matarInimigo()
+{
     printf("\nmatarInimigo - Implementar");
 }
 
-void quebrarBau(MAPA *mapa){
+void quebrarBau(MAPA *mapa)
+{
     printf("\nquebrarBau() - Implementar");
 }
+
+

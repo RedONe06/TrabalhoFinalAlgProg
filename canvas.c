@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "constants.h"
 #include "bau.h"
+#include "gamemanager.h"
 #include "mapa.h"
 #include "jogador.h"
 
@@ -37,15 +38,15 @@ void desenharMapa(MAPA *mapa, JOGADOR *jogador)
             case 'X': // Bomba
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, BLACK);
                 break;
-            case '1': // Segundo 1 da explosão
+            case '1': // Contador de explosão
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, RED);
                 mapa->matriz[i][j] = '2';
                 break;
-            case '2': // Segundo 2 da explosão
+            case '2':
                 DrawRectangle(j * TAM_BLOCO, i * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO, RED);
                 mapa->matriz[i][j] = '3';
                 break;
-            case '3': // Segundo 3 da explosão
+            case '3':
                 mapa->matriz[i][j] = ' ';
                 break;
             default:
@@ -131,7 +132,9 @@ void desenharExplosaoDirecao(MAPA *mapa, JOGADOR *jogador, POSICAO posBomba, int
         else if(conteudo == 'X')   // Bomba
         {
             break;
-        } else {
+        }
+        else
+        {
             mapa->matriz[proximaPosicao.lin][proximaPosicao.col] = '1';
         }
     }

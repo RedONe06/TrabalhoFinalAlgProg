@@ -18,6 +18,7 @@ O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a 
 #include "mapa.h"
 #include "jogador.h"
 #include "gamemanager.h"
+#include "inimigo.h"
 
 /*
 TODO ==========================
@@ -74,6 +75,7 @@ int main()
             controlarMovimentacao(&mapa, &jogador);
             if (IsKeyPressed(KEY_B)) colocarBomba(&jogador, &mapa);
             verificaTimerDasBombas(&mapa, &jogador);
+            verificaTimerDosInimigos(&mapa);
         }
         //----------------------------------------------------------------------------------
         /**** MENU ****/

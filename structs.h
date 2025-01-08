@@ -33,6 +33,7 @@ typedef struct
 } BAU;
 
 typedef struct{
+    bool vivo;
     POSICAO posicao;
 } INIMIGO;
 
@@ -43,8 +44,7 @@ typedef struct
     int nBaus;
     INIMIGO inimigos[MAX_INIMIGOS];
     int nInimigos;
-    int nParedesDestrutiveis;
-    int nParedesIndestrutives;
+    time_t tempoInicio; // Usado para contador de 1 segundo por movimento inimigo
 } MAPA;
 
 // Informações do jogador

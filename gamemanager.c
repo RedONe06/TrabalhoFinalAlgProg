@@ -67,3 +67,10 @@ void controlarMenu(bool *menuEstaRodando, int nivel, MAPA *mapa, JOGADOR *jogado
         *menuEstaRodando = false;
     }
 }
+
+bool jaPassouSegundos(time_t tempoInicial, int segundos)
+{
+    double intervaloEmSegundos = difftime(time(NULL), tempoInicial)/10;
+    intervaloEmSegundos = (intervaloEmSegundos - floor(intervaloEmSegundos)) * 10;
+    return (int)intervaloEmSegundos > segundos;
+}
