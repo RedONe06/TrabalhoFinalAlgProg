@@ -20,20 +20,12 @@ O jogo a implementado é uma versão simplificada do jogo BomberMan, utilizando a 
 #include "gamemanager.h"
 #include "inimigo.h"
 
-/*
-TODO ==========================
-- Explosão de bombas
-- Inimigo andar
-- Pontuação
-- Níveis
-- Novo jogo, salvar, carregar
-- A bomba não explode outras bombas
-*/
-
 int main()
 {
     bool rodando = true; // Enquanto rodando == True o jogo irá rodar
     bool menuEstaRodando = false;
+    bool trocandoDeNivel = false;
+    bool terminou = false;
     MAPA mapa = iniciarMapa();
     JOGADOR jogador = iniciarJogador();
 
@@ -64,43 +56,67 @@ int main()
     {
         /****** DESENHO ******/
         BeginDrawing();
-        ClearBackground(RAYWHITE); // Desenha o fundo branco
+        if(!terminou)
+        {
+            ClearBackground(RAYWHITE); // Desenha o fundo branco
+            desenharBarraStatus(&jogador);
 
-        desenharBarraStatus(&jogador);
-        if (!menuEstaRodando)
-        {
-            desenharMapa(&mapa, &jogador);
-        }
-        else
-        {
-            desenharMenu();
-        }
+            if (!menuEstaRodando)
+            {
+                if (niveisPassados == niveisDisponiveis) // Se passou por todos os níveis
+                {
+                    desenharWin(&terminou);
+                }
+                else if (jogador.nChaves == 5) // Se pegou todas as chaves
+                {
+                    trocandoDeNivel = true;
+                    iniciarVariaveis(&mapa, &jogador);
+                    trocarDeNivel(&mapa, indexMapas, &niveisDisponiveis, &niveisPassados);
+                }
+                else if(jogador.nVidas == 0)
+                {
+                    desenharGameOver(&terminou);
+                }
+                else // Desenhar o nível
+                {
+                    desenharMapa(&mapa, &jogador);
+                }
+            }
+            else
+            {
+                desenharMenu();
+            }
 
-        /**** PERSONAGEM ****/
-        //----------------------------------------------------------------------------------
-        if(!menuEstaRodando)
-        {
-            controlarMovimentacao(&mapa, &jogador);
-            if (IsKeyPressed(KEY_B)) colocarBomba(&jogador, &mapa);
-            verificaTimerDasBombas(&mapa, &jogador);
-            verificaTimerDosInimigos(&mapa);
-        }
-        //----------------------------------------------------------------------------------
-        /**** MENU ****/
-        if (!menuEstaRodando && IsKeyPressed(KEY_TAB)) // Ativar menu
-        {
-            menuEstaRodando = true;
-        }
-        else if (menuEstaRodando)
-        {
-            controlarMenu(&menuEstaRodando, &mapa, &jogador);
-        }
+            /**** PERSONAGEM ****/
+            //----------------------------------------------------------------------------------
+            if(!menuEstaRodando)
+            {
+                controlarMovimentacao(&mapa, &jogador);
+                if (IsKeyPressed(KEY_B)) colocarBomba(&jogador, &mapa);
+                if(!trocandoDeNivel)
+                {
+                    printf("\nteste timer");
+                    verificaTimerDasBombas(&mapa, &jogador);
+                    verificaTimerDosInimigos(&mapa, &jogador);
+                }
+            }
+            //----------------------------------------------------------------------------------
+            /**** MENU ****/
+            if (!menuEstaRodando && IsKeyPressed(KEY_TAB)) // Ativar menu
+            {
+                menuEstaRodando = true;
+            }
+            else if (menuEstaRodando)
+            {
+                controlarMenu(&menuEstaRodando, &mapa, &jogador, &trocandoDeNivel, &niveisPassados, indexMapas);
+            }
 
-        if (IsKeyPressed(KEY_ESCAPE)) rodando = false; // Sair do jogo
-        //----------------------------------------------------------------------------------
+            if (IsKeyPressed(KEY_ESCAPE)) rodando = false; // Sair do jogo
+            //----------------------------------------------------------------------------------
 
+            if(trocandoDeNivel) trocandoDeNivel = false;
+        }
         EndDrawing();
-
         //----------------------------------------------------------------------------------
     }
 

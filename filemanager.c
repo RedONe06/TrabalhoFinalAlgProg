@@ -5,6 +5,7 @@
 /* Lê o arquivo *de texto* do mapa e transforma em um mapa matriz para a utilização no jogo */
 void lerMapaDoArquivo(int idMapa, MAPA *mapa)
 {
+    printf("\nLendo mapa [%d]", idMapa);
     FILE *arq;
     char nomeArquivo[50];
     sprintf(nomeArquivo, "mapa%d.txt", idMapa);
@@ -38,49 +39,38 @@ void lerMapaDoArquivo(int idMapa, MAPA *mapa)
 }
 
 /* Salva o jogo em um arquivo binario */
-void salvarJogo(int nivel, char mapa[LINHAS][COLUNAS], JOGADOR *jogador, int contadores[])
+void salvarJogo(int *niveisPassados, MAPA *mapa, JOGADOR *jogador)
 {
-    int i;
-    int lin, col;
-
     printf("\nSalvando o jogo...");
 
     // Cria um arquivo para salvar o jogo
-    FILE *save;
-    save = fopen("JogoSalvo.bomb","wb");
+    FILE *arq;
+    arq = fopen("lastsave.bin","wb");
 
-    if (save == NULL)
+    if (arq == NULL)
     {
         printf("\nErro ao salvar o jogo.");
     }
     else
     {
         // Salva as informações...
-//        fwrite(nivel, sizeof(int), 1, save); //... do nivel
-        fwrite(jogador, sizeof(int), 4, save); // ... do jogador
-        fwrite(jogador->bombas, sizeof(BOMBA), MAX_BOMBAS, save); // ... das bombas
+        fwrite(niveisPassados, sizeof(int), 1, arq);
+        fwrite(jogador, sizeof(JOGADOR), 1, arq);
+        fwrite(mapa, sizeof(MAPA), 1, arq);
+        fclose(arq);
 
-        // ... do mapa
-        for (i = 0; i < LINHAS; i++)
-        {
-            fwrite(mapa, sizeof(char), 60, save);
-            fwrite("\n", sizeof(char), 1, save);
-        }
-
-        fclose(save);
-
-        printf("\n  Sucesso!");
+        printf("\nSalvo com sucesso!");
     }
 }
 
 /* Carrega o jogo salvo de um arquivo binário */
-void carregarJogo(int nivel, MAPA *mapa, JOGADOR *jogador)
+void carregarJogo(int *niveisPassados, MAPA *mapa, JOGADOR *jogador)
 {
     printf("\nCarregando o jogo...");
 
     // Lê o arquivo do jogo salvo
     FILE *arq;
-    arq = fopen("JogoSalvo.bomb","rb");
+    arq = fopen("lastsave.bin","rb");
 
     if (arq == NULL)
     {
@@ -89,17 +79,14 @@ void carregarJogo(int nivel, MAPA *mapa, JOGADOR *jogador)
     else
     {
         // Carrega as informações...
-        fread(jogador, sizeof(int), 4, arq); // ... do jogador
-        fread(jogador->bombas, sizeof(BOMBA), MAX_BOMBAS, arq); // ... das bombas
-        fread(mapa, sizeof(char), TAMANHO_MAPA, arq); // ... do mapa
+        fread(niveisPassados, sizeof(int), 1, arq);
+        fread(jogador, sizeof(JOGADOR), 1, arq);
+        fread(mapa, sizeof(MAPA), 1, arq);
 
         fclose(arq);
 
-        printf("\n  Jogo carregado com sucesso!");
+        printf("\nJogo carregado com sucesso!");
     }
-
-    // Cria o mapa de novo
-    lerMapaDoArquivo(nivel, mapa);
 }
 
 void acharMapasDisponiveis(int idMapas[MAX_MAPAS], int *nMapas)
@@ -119,7 +106,7 @@ void acharMapasDisponiveis(int idMapas[MAX_MAPAS], int *nMapas)
         {
             fclose(arq);
             idMapas[*nMapas] = i;
-            nMapas++;
+            (*nMapas)++;
         }
     }
 }

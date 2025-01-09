@@ -38,21 +38,6 @@ void controlarMovimentacao(MAPA *mapa, JOGADOR *jogador)
     if (achouChave) jogador->nChaves++;
 }
 
-void perderVida(JOGADOR *jogador)
-{
-    if (jogador->nVidas > 1)
-    {
-        jogador->nVidas--;
-        jogador->pontuacao -= 100;
-        if (jogador->pontuacao < 0) jogador->pontuacao = 0;
-    }
-    else
-    {
-        CloseWindow();
-        printf("\n\n\t\t- Game over -");
-    }
-}
-
 JOGADOR iniciarJogador()
 {
     JOGADOR jogador;
@@ -66,7 +51,12 @@ JOGADOR iniciarJogador()
     return jogador;
 }
 
-void matarJogador()
+void matarJogador(JOGADOR *jogador)
 {
-    printf("\nmatarJogador() - Implementar");
+    jogador->nVidas--;
+    if((jogador->pontuacao - 100) <= 0){
+        jogador->pontuacao = 0;
+    } else {
+        jogador->pontuacao -= 100;
+    }
 }

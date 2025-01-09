@@ -5,6 +5,7 @@
 		<Option title="bomberman" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
+		<Option virtualFolders="Utils/;Models/" />
 		<Build>
 			<Target title="Debug">
 				<Option output="bin/Debug/bomberman" prefix_auto="1" extension_auto="1" />
@@ -31,17 +32,45 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="bomba.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="Models/" />
+		</Unit>
+		<Unit filename="bomba.h" />
 		<Unit filename="canvas.c">
 			<Option compilerVar="CC" />
+			<Option virtualFolder="Utils/" />
 		</Unit>
 		<Unit filename="canvas.h" />
+		<Unit filename="constants.h" />
 		<Unit filename="filemanager.c">
 			<Option compilerVar="CC" />
+			<Option virtualFolder="Utils/" />
 		</Unit>
 		<Unit filename="filemanager.h" />
+		<Unit filename="gamemanager.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="Utils/" />
+		</Unit>
+		<Unit filename="gamemanager.h" />
+		<Unit filename="inimigo.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="Models/" />
+		</Unit>
+		<Unit filename="inimigo.h" />
+		<Unit filename="jogador.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="Models/" />
+		</Unit>
+		<Unit filename="jogador.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="mapa.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="Models/" />
+		</Unit>
+		<Unit filename="mapa.h" />
 		<Unit filename="structs.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />

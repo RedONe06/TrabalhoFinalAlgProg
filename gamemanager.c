@@ -2,58 +2,46 @@
 #include "constants.h"
 #include "mapa.h"
 #include "raylib.h"
+#include "jogador.h"
+#include "mapa.h"
+#include "filemanager.h"
 
-void proximoNivel(int nivel, MAPA *mapa, JOGADOR *jogador)
-{
-    nivel++;
-    jogador->nChaves = 0;
-    //desenharProxNivel();
-    //lerMapaDoArquivo(nivel, mapa, contadores, baus);
+void iniciarVariaveis(MAPA *mapa, JOGADOR *jogador) {
+    printf("\nReiniciando variáveis de mapa e jogador");
+
+    // Copia o valor retornado para as estruturas apontadas pelos ponteiros
+    *mapa = iniciarMapa();
+    *jogador = iniciarJogador();
 }
 
 /* Inicia o jogo do zero */
-void novoJogo(int nivel, MAPA *mapa, JOGADOR *jogador)
+void novoJogo(MAPA *mapa, JOGADOR *jogador, bool *trocandoDeNivel, int *niveisPassados, int indexMapas[MAX_MAPAS])
 {
-    // Reinicia os contadores
-    // contadores[0] = contadores[1] = contadores[2] = contadores[3] = contadores[4] = 0;
-    nivel = 0;
-
-    // Reinicia o jogador
-    jogador->nVidas = 3;
-    jogador->nBombas = 3;
-    jogador->pontuacao = 0;
-    jogador->nChaves = 0;
-
-    // Reinicia as bombas
-    jogador->bombas[0].ativa = false;
-    jogador->bombas[1].ativa = false;
-    jogador->bombas[2].ativa = false;
-
-    // Lê novamente o arquivo e recria do 0
-    //lerMapaDoArquivo(nivel, mapa);
-    //criarMapa(mapa, posJogador, posInimigos, posChaves, contadores);
-
-    printf("\n\n----- NOVO JOGO INICIADO! -----\n");
+    printf("\nIniciando um novo jogo!");
+    iniciarVariaveis(mapa, jogador);
+    *trocandoDeNivel = true;
+    *niveisPassados = 0;
+    lerMapaDoArquivo(indexMapas[0], mapa);
 }
 
-
-void controlarMenu(bool *menuEstaRodando, MAPA *mapa, JOGADOR *jogador)
+void controlarMenu(bool *menuEstaRodando, MAPA *mapa, JOGADOR *jogador,  bool *trocandoDeNivel, int *niveisPassados, int indexMapas[MAX_MAPAS])
 {
     if(IsKeyPressed(KEY_N))
     {
-        //novoJogo(nivel, mapa, jogador, contadores, baus);
+        novoJogo(mapa, jogador, trocandoDeNivel, niveisPassados, indexMapas);
         *menuEstaRodando = false;
     }
     else if(IsKeyPressed(KEY_C))
     {
-        printf("\nCarregar jogo (Implementar)");
-        // carregarJogo(nivel, mapa, jogador, contadores, baus);
+        carregarJogo(niveisPassados, mapa, jogador);
+        printf("\nNiveisPassados: %d", *niveisPassados);
+        lerMapaDoArquivo(indexMapas[*niveisPassados], mapa);
+        *trocandoDeNivel = true;
         *menuEstaRodando = false;
     }
     else if(IsKeyPressed(KEY_S))
     {
-        printf("\nSalvar jogo (Implementar)");
-        // salvarJogo(nivel, mapa, jogador, contadores);
+        salvarJogo(niveisPassados, mapa, jogador);
         *menuEstaRodando = false;
     }
     else if(IsKeyPressed(KEY_Q))
@@ -74,3 +62,16 @@ bool jaPassouSegundos(time_t tempoInicial, int segundos)
     intervaloEmSegundos = (intervaloEmSegundos - floor(intervaloEmSegundos)) * 10;
     return (int)intervaloEmSegundos > segundos;
 }
+
+void terminarJogo(){
+    printf("\nterminarJogo() - Implementar");
+}
+
+void trocarDeNivel(MAPA *mapa, int indexMapas[MAX_MAPAS], int *niveisDisponiveis, int *niveisPassados) {
+    // Incrementa um aos níveis passados
+    *niveisPassados = *niveisPassados + 1;
+
+    // Lê o próximo mapa baseado no novo nível passado
+    lerMapaDoArquivo(indexMapas[*niveisPassados], mapa);
+}
+

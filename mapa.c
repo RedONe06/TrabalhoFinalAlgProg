@@ -80,6 +80,7 @@ MAPA iniciarMapa()
     mapa.inimigos[2].vivo = 1;
     mapa.inimigos[3].vivo = 1;
     mapa.inimigos[4].vivo = 1;
+    mapa.tempoInicio = time(NULL);
     return mapa;
 }
 

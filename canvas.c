@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include "canvas.h"
 #include "raylib.h"
 #include "constants.h"
@@ -81,8 +82,22 @@ void desenharMenu()
     DrawText("[V] Voltar", xTexto, yTitulo + 130, 20, BLACK);
 }
 
-void desenharProxNivel()
-{
+void desenharGameOver(bool *terminou){
+    int yTitulo = ALTURA / 2;
+    int xTitulo = LARGURA / 3;
+
+    ClearBackground(RED);
+    DrawText("Game over", xTitulo, yTitulo, 60, WHITE);
+    *terminou = true;
+}
+
+void desenharWin(bool *terminou){
+    int yTitulo = ALTURA / 2;
+    int xTitulo = LARGURA / 2.5;
+
+    ClearBackground(GREEN);
+    DrawText("Win!", xTitulo, yTitulo, 60, WHITE);
+    *terminou = true;
 }
 
 void desenharExplosao(MAPA *mapa, JOGADOR *jogador, POSICAO posBomba)
@@ -101,9 +116,7 @@ void desenharExplosaoDirecao(MAPA *mapa, JOGADOR *jogador, POSICAO posBomba, int
         char conteudo = mapa->matriz[proximaPosicao.lin][proximaPosicao.col];
         if (conteudo == 'J') // Jogador
         {
-            matarJogador();
-            // Remove o jogador do mapa e mostra a explosão
-            // mapa->matriz[proximaPosicao.lin][proximaPosicao.col] = '1';
+            matarJogador(jogador);
             break;
         }
         else if (conteudo == 'W')   // Parede indestrutível
