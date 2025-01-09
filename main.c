@@ -35,16 +35,6 @@ int main()
     acharMapasDisponiveis(indexMapas, &niveisDisponiveis);
     lerMapaDoArquivo(indexMapas[0], &mapa);
 
-    // Printa a matriz para verificar se o mapa foi recebido corretamente
-    for (int i = 0; i < LINHAS; i++)
-    {
-        for (int j = 0; j < COLUNAS; j++)
-        {
-            printf("%c", mapa.matriz[i][j]);
-        }
-        printf("\n");
-    }
-
     // Inicia a tela do jogo no tamanho especificado pelas variáveis
     InitWindow(LARGURA, ALTURA, "raylib [core] example - basic window");
 

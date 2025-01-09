@@ -54,9 +54,12 @@ JOGADOR iniciarJogador()
 void matarJogador(JOGADOR *jogador)
 {
     jogador->nVidas--;
-    if((jogador->pontuacao - 100) <= 0){
+    if((jogador->pontuacao - 100) <= 0)
+    {
         jogador->pontuacao = 0;
-    } else {
+    }
+    else
+    {
         jogador->pontuacao -= 100;
     }
 }

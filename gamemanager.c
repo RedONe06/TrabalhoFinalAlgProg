@@ -63,10 +63,6 @@ bool jaPassouSegundos(time_t tempoInicial, int segundos)
     return (int)intervaloEmSegundos > segundos;
 }
 
-void terminarJogo(){
-    printf("\nterminarJogo() - Implementar");
-}
-
 void trocarDeNivel(MAPA *mapa, int indexMapas[MAX_MAPAS], int *niveisDisponiveis, int *niveisPassados) {
     // Incrementa um aos níveis passados
     *niveisPassados = *niveisPassados + 1;

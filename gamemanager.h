@@ -9,6 +9,5 @@ void controlarMenu(bool *menuEstaRodando, MAPA *mapa, JOGADOR *jogador, bool *tr
 bool jaPassouSegundos(time_t tempoInicial, int segundos);
 void iniciarVariaveis(MAPA *mapa, JOGADOR *jogador);
 void trocarDeNivel(MAPA *mapa, int indexMapas[MAX_MAPAS], int *niveisDisponiveis, int *niveisPassados);
-void terminarJogo();
 
 #endif // GAMEMANAGER_H

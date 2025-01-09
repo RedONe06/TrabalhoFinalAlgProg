@@ -85,9 +85,3 @@ MAPA iniciarMapa()
 }
 
 
-void quebrarBau(MAPA *mapa)
-{
-    printf("\nquebrarBau() - Implementar");
-}
-
-
