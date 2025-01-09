@@ -34,7 +34,7 @@ void moverInimigo(MAPA *mapa, INIMIGO *inimigo, JOGADOR *jogador)
     case 3: // Direita
         mapa->matriz[inimigo->posicao.lin][inimigo->posicao.col] = ' ';
 
-        acharProximaPosicao(inimigo->posicao, direcaoEscolhida);
+        proximaPosicao = acharProximaPosicao(inimigo->posicao, direcaoEscolhida);
         conteudo = mapa->matriz[proximaPosicao.lin][proximaPosicao.col];
         if(conteudo == 'J') jogador->nVidas--;
 

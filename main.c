@@ -95,7 +95,6 @@ int main()
                 if (IsKeyPressed(KEY_B)) colocarBomba(&jogador, &mapa);
                 if(!trocandoDeNivel)
                 {
-                    printf("\nteste timer");
                     verificaTimerDasBombas(&mapa, &jogador);
                     verificaTimerDosInimigos(&mapa, &jogador);
                 }
